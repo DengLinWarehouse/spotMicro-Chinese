@@ -25,45 +25,49 @@ target_include_directories(spot_micro_kinematics
 	#Eigen3::Eigen
 #)
 
-#############################################
-# Unit tests
-# Only add 3rd party directory if gtest doesnt already exist
-if (NOT TARGET gtest)
-		add_subdirectory(3rd_party/google-test)
-endif ()
-# enable CTest testing
-enable_testing()
+option(SMK_BUILD_TESTS "Build spot_micro_kinematics unit tests" OFF)
 
-# Add a testing executable
-add_executable(test_utils tests/test_utils.cpp)
+if(SMK_BUILD_TESTS)
+	#############################################
+	# Unit tests
+	# Only add 3rd party directory if gtest doesnt already exist
+	if (NOT TARGET gtest)
+			add_subdirectory(3rd_party/google-test)
+	endif ()
+	# enable CTest testing
+	enable_testing()
 
-target_link_libraries(test_utils
-    spot_micro_kinematics
-    gtest 
-    gtest_main
-)
+	# Add a testing executable
+	add_executable(test_utils tests/test_utils.cpp)
 
-add_test(test_utils test_utils)
+	target_link_libraries(test_utils
+	    spot_micro_kinematics
+	    gtest 
+	    gtest_main
+	)
+
+	add_test(test_utils test_utils)
 
 
-# Add a testing executable
-add_executable(test_spot_micro_leg tests/test_spot_micro_leg.cpp)
+	# Add a testing executable
+	add_executable(test_spot_micro_leg tests/test_spot_micro_leg.cpp)
 
-target_link_libraries(test_spot_micro_leg
-    spot_micro_kinematics
-    gtest 
-    gtest_main
-)
+	target_link_libraries(test_spot_micro_leg
+	    spot_micro_kinematics
+	    gtest 
+	    gtest_main
+	)
 
-add_test(test_spot_micro_leg test_spot_micro_leg)
+	add_test(test_spot_micro_leg test_spot_micro_leg)
 
-# Add a testing executable
-add_executable(test_spot_micro_kinematics tests/test_spot_micro_kinematics.cpp)
+	# Add a testing executable
+	add_executable(test_spot_micro_kinematics tests/test_spot_micro_kinematics.cpp)
 
-target_link_libraries(test_spot_micro_kinematics
-    spot_micro_kinematics
-    gtest 
-    gtest_main
-)
+	target_link_libraries(test_spot_micro_kinematics
+	    spot_micro_kinematics
+	    gtest 
+	    gtest_main
+	)
 
-add_test(test_spot_micro_kinematics test_spot_micro_kinematics)
+	add_test(test_spot_micro_kinematics test_spot_micro_kinematics)
+endif()

@@ -30,4 +30,16 @@ install(TARGETS i2cpwm_board
 install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h" )
 install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch )
 
-execute_process(COMMAND doxygen doc/Doxyfile)
+option(I2CPWM_BUILD_DOCS "Generate Doxygen documentation as part of the build" OFF)
+if(I2CPWM_BUILD_DOCS)
+  find_package(Doxygen QUIET)
+  if(DOXYGEN_FOUND)
+    message(STATUS "Enabling Doxygen documentation for ros-i2cpwmboard")
+    add_custom_target(i2cpwmboard_doxygen ALL
+      COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Generating Doxygen docs for ros-i2cpwmboard")
+  else()
+    message(WARNING "Doxygen not found, unable to build ros-i2cpwmboard docs")
+  endif()
+endif()

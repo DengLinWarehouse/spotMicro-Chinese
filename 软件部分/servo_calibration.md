@@ -1,6 +1,6 @@
 # Servo Calibration Guide
 
-This document provides a comprehensive guide to calibrate servos on a spot micro frame and create a cooresponding servo configuration ditionary the ROS control software requires. A spreadhseet named `servo_calibration_spreadsheet.ods` is included in this repo as an aid for calculating the servo configuration values.
+This document provides a comprehensive guide to calibrate servos on a spot micro frame and create a cooresponding servo configuration ditionary the ROS control software requires. A spreadhseet named `舵机校准参考表格.ods` is included in this repo as an aid for calculating the servo configuration values.
 
 The servo configuration dictionary is contained within the configuration file `spot_micro_motion_cmd.yaml` and holds servo configuration values as shown below:
 ```yaml

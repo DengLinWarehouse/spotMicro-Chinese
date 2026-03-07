@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """
 Class for sending keyboard commands to spot micro walk node, control velocity, yaw rate, and walk event 
@@ -140,7 +140,7 @@ class SpotMicroKeyboardControl():
         
         while not rospy.is_shutdown():
             print(msg)
-            userInput = raw_input("Command?: ")
+            userInput = input("Command?: ")
 
             if userInput not in valid_cmds:
                 print('Valid command not entered, try again...')
