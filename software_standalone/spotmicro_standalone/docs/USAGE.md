@@ -25,10 +25,13 @@ CI 或离线设备也可以直接使用 `requirements.txt` 固定依赖（`pip i
 ### 2.1 启动键盘遥控
 
 ```bash
-spotmicro-teleop \
-  --backend mock \
-  --log-level INFO
+spotmicro-teleop --backend mock --log-level INFO
 ```
+
+> **Windows 注意**  
+> PowerShell 不支持 `\` 续行，请写成单行或使用反引号 `` ` ``。如果 `spotmicro-teleop`
+> 命令未出现在 PATH，可改用  
+> `python -m spotmicro_standalone.apps.teleop --backend mock --log-level INFO`。
 
 常用覆盖参数：
 
@@ -107,6 +110,7 @@ spotmicro-teleop --config configs/my_robot.yaml
 | 现象 | 检查项 |
 | ---- | ------ |
 | `ModuleNotFoundError: spotmicro_standalone` | 是否执行过 `pip install -e .`？运行测试时是否使用 `python -m pytest` 而不是直接 `python tests/...`？ |
+| `spotmicro-teleop` 不是内部命令 | 重新 `conda activate` 以刷新 PATH，或直接运行 `python -m spotmicro_standalone.apps.teleop ...` |
 | PCA9685 无响应 | 当前用户是否在 `i2c` 组？`i2cdetect -y 1` 能否识别地址？命令中是否选择 `--backend pca9685`？ |
 | 启动时机器人猛跳 | 再次核对 `servo.layout.*.direction` 与 `center_angle_deg`，先用 mock 后端确认 PWM 范围合理。 |
 | 键盘有延迟 | 确保终端窗口在前台，减小 `teleop` 增量，并避免在高频循环中使用 `--log-level DEBUG`。 |

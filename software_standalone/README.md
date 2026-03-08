@@ -32,6 +32,8 @@ pip install '.[hardware]'
 
 # 启动键盘遥控（默认使用 mock 后端）
 spotmicro-teleop
+# 若 PowerShell 未能识别命令，可改为：
+python -m spotmicro_standalone.apps.teleop --backend mock --log-level INFO
 ```
 
 键盘映射（Win/Linux 相同）：
