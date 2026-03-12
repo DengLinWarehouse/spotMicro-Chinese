@@ -26,6 +26,7 @@ catkin build    # 或 catkin_make
 - `SOFTWARE_ASSESSMENT.md`：软件可靠性评估与待办。
 - `LEARNING_GUIDE.md`：学习路线与背景知识。
 - `实验操作手册.md`：一步一步跑通实验程序的详细 runbook（环境准备、构建、调试、排错），零基础必读。
+- `../docs/build_notes.md`：记录复刻过程中的额外构建问题（CATKIN_IGNORE、子模块、依赖安装），与 runbook 互补。
 
 
 ## 构建前置
