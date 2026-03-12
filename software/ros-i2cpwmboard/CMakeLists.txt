@@ -18,7 +18,10 @@ include_directories(include  ${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 
-find_library(I2C_LIB i2c)
+find_library(I2C_LIB i2c REQUIRED
+             PATHS /usr/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu
+                   /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+                   /usr/lib /lib)
 
 add_executable(i2cpwm_board src/i2cpwm_controller.cpp)
 target_link_libraries(i2cpwm_board ${catkin_LIBRARIES} ${I2C_LIB})

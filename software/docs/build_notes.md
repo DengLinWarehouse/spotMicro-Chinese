@@ -37,7 +37,7 @@
 | `Multiple packages found with the same name` | extensions 中的备份未忽略 | 创建 `CATKIN_IGNORE` 后重新 `rosdep install` |
 | `Could not find a package configuration file provided by "i2cpwm_board"` | `ros-i2cpwmboard` 目录为空 | 复制或 clone 子模块源码 |
 | `spot_micro_launch` 找不到 `hector_*`（geotiff / plugins / trajectory / mapping / map_server） | 未安装 hector 系列依赖 | `sudo apt install ros-noetic-hector-geotiff ros-noetic-hector-geotiff-plugins ros-noetic-hector-trajectory-server ros-noetic-hector-mapping ros-noetic-hector-map-server` |
-| `i2cpwm_board` 编译中 `i2c_smbus_*` 未定义 / undefined reference | `libi2c-dev` 未安装或 CMake 未链接 i2c | `sudo apt install libi2c-dev`，并在 CMake 中 `target_link_libraries(... i2c)` |
+| `i2cpwm_board` 编译中 `i2c_smbus_*` 未定义 / undefined reference | `libi2c-dev` 未安装或 CMake 未正确链接 `libi2c.so` | `sudo apt install libi2c-dev`，并在 CMake 中 `find_library(I2C_LIB i2c REQUIRED ...)` + `target_link_libraries(... ${I2C_LIB})` |
 | `rosdep` 提示 `rplidar_ros` 缺失 | 未安装雷达驱动包 | `sudo apt install ros-noetic-rplidar-ros` |
 
 补齐以上步骤后，`rosdep install --from-paths src --ignore-src -r -y` 与 `catkin build` 应能顺利通过。
