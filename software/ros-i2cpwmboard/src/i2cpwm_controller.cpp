@@ -178,6 +178,7 @@
 #include <sys/stat.h>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
+#include <i2c/smbus.h>
 #include <ros/ros.h>
 #include <ros/console.h>
 
