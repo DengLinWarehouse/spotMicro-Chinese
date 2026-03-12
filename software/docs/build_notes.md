@@ -38,6 +38,8 @@
 | `Could not find a package configuration file provided by "i2cpwm_board"` | `ros-i2cpwmboard` 目录为空 | 复制或 clone 子模块源码 |
 | `spot_micro_launch` 找不到 `hector_*`（geotiff / plugins / trajectory / mapping / map_server） | 未安装 hector 系列依赖 | `sudo apt install ros-noetic-hector-geotiff ros-noetic-hector-geotiff-plugins ros-noetic-hector-trajectory-server ros-noetic-hector-mapping ros-noetic-hector-map-server` |
 | `i2cpwm_board` 编译中 `i2c_smbus_*` 未定义 / undefined reference | `libi2c-dev` 未安装或 CMake 未正确链接 `libi2c.so` | `sudo apt install libi2c-dev`，并在 CMake 中 `find_library(I2C_LIB i2c REQUIRED ...)` + `target_link_libraries(... ${I2C_LIB})` |
+| `spot_micro_motion_cmd` 报 `tf2_eigen/tf2_eigen.h` 缺失 | 没安装 `tf2_eigen` | `sudo apt install ros-noetic-tf2-eigen` |
+| `spot_micro_motion_cmd` 报 `libs/spot_micro_kinematics_cpp` 不存在 | 主仓库自带目录为空，需要复制备份或初始化子模块 | `cd ~/spotMicro-Chinese/software/spot_micro_motion_cmd/libs && rm -rf spot_micro_kinematics_cpp && cp -R ../extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp .` |
 | `rosdep` 提示 `rplidar_ros` 缺失 | 未安装雷达驱动包 | `sudo apt install ros-noetic-rplidar-ros` |
 
 补齐以上步骤后，`rosdep install --from-paths src --ignore-src -r -y` 与 `catkin build` 应能顺利通过。
@@ -71,3 +73,23 @@
    在 `link.txt` 内确认末尾存在 `/usr/lib/aarch64-linux-gnu/libi2c.so` 或 `-li2c`。若仍缺失，请删除 `build/i2cpwm_board` 目录后重跑 `catkin build`，或使用 `VERBOSE=1` 观察完整链接命令。
 
 排查链路完成后，再执行一次 `source ~/catkin_ws/devel/setup.bash`，即可恢复其余包的构建。
+
+## 7. spot_micro_motion_cmd 补丁流程
+1. **确认运动学子库存在**：`ls ~/spotMicro-Chinese/software/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp` 应包含 `CMakeLists.txt、include、src` 等子目录。若为空，执行：
+   ```bash
+   cd ~/spotMicro-Chinese/software/spot_micro_motion_cmd/libs
+   rm -rf spot_micro_kinematics_cpp
+   cp -R ~/spotMicro-Chinese/software/extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp .
+   ```
+   亦可改为 `git submodule update --init --recursive`，效果相同。
+2. **补齐 tf2_eigen 依赖**：`spot_micro_motion_cmd` 默认包含 `#include <tf2_eigen/tf2_eigen.h>`，Ubuntu 20.04 需安装 `ros-noetic-tf2-eigen`：
+   ```bash
+   sudo apt install ros-noetic-tf2-eigen
+   ```
+3. **重建并验证**：
+   ```bash
+   cd ~/catkin_ws
+   catkin clean spot_micro_motion_cmd
+   catkin build spot_micro_motion_cmd
+   ```
+   若只需检查该包，可使用 `--no-deps`，并在日志中确认 `spot_micro_motion_cmd_node` 已链接。
