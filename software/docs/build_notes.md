@@ -5,6 +5,13 @@
 ## 1. Catkin 工作区位置
 - 建议固定在 `~/catkin_ws`。如果放在其他路径，记得把所有命令里的 `~/catkin_ws` 替换掉，并保证当前用户拥有读写权限。
 - 新终端务必先执行 `source /opt/ros/noetic/setup.bash`，否则 `catkin`/`rosdep` 均不可用。
+- **不要在 `~/spotMicro-Chinese/software` 里创建指向自身的 `software -> /home/<user>/spotMicro-Chinese/software` 符号链接。** 该链接会让 catkin 在 `~/catkin_ws/src/spot_micro` 里反复发现 `spot_micro/software/...`、`spot_micro/software/software/...` 等路径，从而报 `Multiple packages found with the same name`。若怀疑已出现，执行：
+  ```bash
+  cd ~/spotMicro-Chinese/software
+  ls -l | grep ' software'
+  find ~/catkin_ws/src/spot_micro -maxdepth 3 -type d -name ros-i2cpwmboard
+  ```
+  发现此类输出后，删除该链接并重新 `ln -s ~/spotMicro-Chinese/software ~/catkin_ws/src/spot_micro`。
 
 ## 2. 扩展包的 CATKIN_IGNORE
 - `software/extensions/packages/` 里存有一份旧版中文扩展包，如果不忽略会导致 rosdep 报“找到多个同名包”。

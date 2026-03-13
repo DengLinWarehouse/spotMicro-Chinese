@@ -1566,7 +1566,8 @@ static int _load_params (void)
 	}
 	else
 		ROS_DEBUG("Parameter Server namespace[%s] does not contain 'drive_config", nhp.getNamespace().c_str());
-}	
+	return 0;
+}
 
 
 // ------------------------------------------------------------------------------------------------------------------------------------
