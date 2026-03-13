@@ -29,7 +29,7 @@
 - 雷达：`sudo apt install ros-noetic-rplidar-ros`（包名前必须带 `ros-noetic-`，直接安装 `rplidar_ros` 会失败）。
 - Hector SLAM：`sudo apt install ros-noetic-hector-geotiff ros-noetic-hector-geotiff-plugins ros-noetic-hector-trajectory-server ros-noetic-hector-mapping ros-noetic-hector-map-server`。
 - I2C SMBus 头文件：`sudo apt install libi2c-dev`，否则 `i2cpwm_board` 编译时会提示 `i2c_smbus_*` 未定义。
-- Ubuntu 20.04 默认无 `python` 命令，遇到脚本请改用 `python3`。
+- Ubuntu 20.04 默认无 `python` 命令。若脚本 shebang 使用 `/usr/bin/python`（如 `servo_move_keyboard`、`spot_micro_keyboard_command`、`spot_micro_plot` 等），请执行 `sudo apt install python-is-python3` 或将首行改为 `/usr/bin/env python3` 后重新 `catkin build`。
 
 ## 5. 常见报错速查
 | 报错信息 | 说明 | 处理 |
@@ -93,3 +93,8 @@
    catkin build spot_micro_motion_cmd
    ```
    若只需检查该包，可使用 `--no-deps`，并在日志中确认 `spot_micro_motion_cmd_node` 已链接。
+
+## 8. 运行节点前必须确认的事项
+- **ROS Master**：除 `roslaunch` 已经包含 `roscore` 的场景外，请手动开启一个独立终端运行 `roscore`，否则所有 `rosrun`/`roslaunch` 都会出现 `Failed to contact master`、`Duration is out of range` 等异常。
+- **I2C 硬件**：`i2cpwm_board` 需要 /dev/i2c-1 和 PCA9685 节点可用；若在无硬件环境中运行，`roslaunch i2cpwm_board i2cpwm_node.launch` 会输出 `Failed to open I2C bus /dev/i2c-1` 并退出，这是预期行为。调试其它节点前请确保 I2C 总线和地址 0x40 的驱动板已连接、`i2c-tools` 能够 `i2cdetect` 到设备。
+- **脚本执行权限**：`servo_move_keyboard`、`spot_micro_keyboard_command`、`lcd_monitor`、`spot_micro_plot` 的 Python 节点在第一次 checkout 后没有执行权限。运行 `chmod +x ~/catkin_ws/src/spot_micro/<package>/scripts/*.py && catkin build <package>`，否则 `rosrun` 会提示 “Found ... but not executable”。

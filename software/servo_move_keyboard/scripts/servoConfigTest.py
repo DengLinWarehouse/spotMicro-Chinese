@@ -212,7 +212,7 @@ class SpotMicroServoControl():
         
         while not rospy.is_shutdown():
             print(msg)
-            userInput = raw_input("Command?: ")
+            userInput = input("Command?: ")
 
             if userInput not in validCmds:
                 print('Valid command not entered, try again...')

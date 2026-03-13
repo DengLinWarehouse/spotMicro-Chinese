@@ -37,10 +37,14 @@ catkin build    # 或 catkin_make
 
 ## 启动顺序（建议）
 
-1. `roslaunch ros-i2cpwmboard i2cpwm_node.launch`
+> **运行前置**：以下命令均在 Ubuntu 终端执行，且务必先 `cd ~/catkin_ws`。若 `source /opt/ros/$ROS_DISTRO/setup.bash` 报 “No such file or directory”，说明 `$ROS_DISTRO` 未设置，请手动替换为当前发行版（例如 `source /opt/ros/noetic/setup.bash`），再执行 `source ~/catkin_ws/devel/setup.bash`。每开一个新终端都要重复以上两条命令，否则 ROS 包与自定义消息无法被找到。
+
+0. `roscore`（单独终端先启动 ROS Master，否则其余节点会连续报 `Failed to contact master`）
+1. `roslaunch i2cpwm_board i2cpwm_node.launch`（包名是 `i2cpwm_board`，不是 `ros-i2cpwmboard`；未连接 PCA9685 会提示 `Failed to open I2C bus /dev/i2c-1` 属正常现象）
 2. `rosrun servo_move_keyboard servoMoveKeyboard.py`（单舵机调试、确认硬件）
 3. `rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py` （键盘控制）
 4. `rosrun spot_micro_motion_cmd spot_micro_motion_cmd_node`
 5. 可选：`rosrun lcd_monitor sm_lcd_node.py`, `rosrun spot_micro_plot spotMicroPlot.py`
 
-详细调试步骤与风险见 `SOFTWARE_ASSESSMENT.md`。
+
+> **脚本/解释器提示**：如 `rosrun ... .py` 仍提示“Found ... but not executable”，请运行 `chmod +x ~/catkin_ws/src/spot_micro/<package>/scripts/*.py` 并重新 `catkin build <package>` 后再启动。

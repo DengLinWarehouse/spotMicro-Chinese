@@ -154,7 +154,7 @@ class SpotMicroServoControl():
         self.settings = termios.tcgetattr(sys.stdin)
 
     def send_servo_msg(self):
-        for servo_key, servo_obj in self.servos.iteritems():
+        for servo_key, servo_obj in self.servos.items():
             self._servo_msg.servos[servo_obj.id].servo = servo_obj.id+1
             self._servo_msg.servos[servo_obj.id].value = servo_obj.value
             #rospy.loginfo("Sending to %s command %d"%(servo_key, servo_obj.value))
@@ -192,7 +192,7 @@ class SpotMicroServoControl():
         
         while not rospy.is_shutdown():
             print(msg)
-            userInput = raw_input("Command?: ")
+            userInput = input("Command?: ")
 
             if userInput not in validCmds:
                 print('Valid command not entered, try again...')
