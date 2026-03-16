@@ -19,3 +19,4 @@ dist/
 *.egg-info/
 
 software_standalone/.venv/
+hardware/~$材料清单.xlsx

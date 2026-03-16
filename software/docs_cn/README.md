@@ -47,4 +47,11 @@ catkin build    # 或 catkin_make
 5. 可选：`rosrun lcd_monitor sm_lcd_node.py`, `rosrun spot_micro_plot spotMicroPlot.py`
 
 
-> **脚本/解释器提示**：如 `rosrun ... .py` 仍提示“Found ... but not executable”，请运行 `chmod +x ~/catkin_ws/src/spot_micro/<package>/scripts/*.py` 并重新 `catkin build <package>` 后再启动。
+> **脚本/解释器提示**：如 `rosrun ... .py` 仍提示“Found ... but not executable”，请运行 `chmod +x ~/catkin_ws/src/spot_micro/<package>/scripts/*.py` 并重新 `catkin build <package>` 后再启动；若提示 `/usr/bin/python: No such file or directory`，请 `sudo apt install python-is-python3` 或将脚本首行改为 `/usr/bin/env python3`。其中 `<package>` 需替换为下列实际包名（命令可直接复制）：
+```bash
+chmod +x ~/catkin_ws/src/spot_micro/servo_move_keyboard/scripts/*.py
+chmod +x ~/catkin_ws/src/spot_micro/spot_micro_keyboard_command/scripts/*.py
+chmod +x ~/catkin_ws/src/spot_micro/lcd_monitor/scripts/*.py
+chmod +x ~/catkin_ws/src/spot_micro/spot_micro_plot/scripts/*.py
+catkin build servo_move_keyboard spot_micro_keyboard_command lcd_monitor spot_micro_plot
+```

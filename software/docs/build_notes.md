@@ -37,6 +37,14 @@
 - Hector SLAM：`sudo apt install ros-noetic-hector-geotiff ros-noetic-hector-geotiff-plugins ros-noetic-hector-trajectory-server ros-noetic-hector-mapping ros-noetic-hector-map-server`。
 - I2C SMBus 头文件：`sudo apt install libi2c-dev`，否则 `i2cpwm_board` 编译时会提示 `i2c_smbus_*` 未定义。
 - Ubuntu 20.04 默认无 `python` 命令。若脚本 shebang 使用 `/usr/bin/python`（如 `servo_move_keyboard`、`spot_micro_keyboard_command`、`spot_micro_plot` 等），请执行 `sudo apt install python-is-python3` 或将首行改为 `/usr/bin/env python3` 后重新 `catkin build`。
+ 另外，请给这些脚本加执行权限并重新构建，例如：
+  ```bash
+  chmod +x ~/catkin_ws/src/spot_micro/servo_move_keyboard/scripts/*.py
+  chmod +x ~/catkin_ws/src/spot_micro/spot_micro_keyboard_command/scripts/*.py
+  chmod +x ~/catkin_ws/src/spot_micro/lcd_monitor/scripts/*.py
+  chmod +x ~/catkin_ws/src/spot_micro/spot_micro_plot/scripts/*.py
+  catkin build servo_move_keyboard spot_micro_keyboard_command lcd_monitor spot_micro_plot
+  ```
 
 ## 5. 常见报错速查
 | 报错信息 | 说明 | 处理 |
