@@ -113,3 +113,20 @@
 - **ROS Master**：除 `roslaunch` 已经包含 `roscore` 的场景外，请手动开启一个独立终端运行 `roscore`，否则所有 `rosrun`/`roslaunch` 都会出现 `Failed to contact master`、`Duration is out of range` 等异常。
 - **I2C 硬件**：`i2cpwm_board` 需要 /dev/i2c-1 和 PCA9685 节点可用；若在无硬件环境中运行，`roslaunch i2cpwm_board i2cpwm_node.launch` 会输出 `Failed to open I2C bus /dev/i2c-1` 并退出，这是预期行为。调试其它节点前请确保 I2C 总线和地址 0x40 的驱动板已连接、`i2c-tools` 能够 `i2cdetect` 到设备。
 - **脚本执行权限**：`servo_move_keyboard`、`spot_micro_keyboard_command`、`lcd_monitor`、`spot_micro_plot` 的 Python 节点在第一次 checkout 后没有执行权限。运行 `chmod +x ~/catkin_ws/src/spot_micro/<package>/scripts/*.py && catkin build <package>`，否则 `rosrun` 会提示 “Found ... but not executable”。
+- **舵机通道参考**：`spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml` 默认将 12 个通道映射到四足的肩/大腿/小腿：
+  | 通道 | 名称 | 部位 |
+  | --- | --- | --- |
+  | 1 | FL_HIP | 左前腿肩部 |
+  | 2 | FL_UPPER_LEG | 左前腿大腿 |
+  | 3 | FL_LOWER_LEG | 左前腿小腿 |
+  | 4 | FR_HIP | 右前腿肩部 |
+  | 5 | FR_UPPER_LEG | 右前腿大腿 |
+  | 6 | FR_LOWER_LEG | 右前腿小腿 |
+  | 7 | RL_HIP | 左后腿肩部 |
+  | 8 | RL_UPPER_LEG | 左后腿大腿 |
+  | 9 | RL_LOWER_LEG | 左后腿小腿 |
+  | 10 | RR_HIP | 右前腿肩部 |
+  | 11 | RR_UPPER_LEG | 右前腿大腿 |
+  | 12 | RR_LOWER_LEG | 右后腿小腿 |
+  `servo_move_keyboard` 中输入对应通道即可操作特定关节；若重新布线，请同步修改 YAML 的 `servo_mapping`。
+- **RPLidar A1 快速测试**：`sudo apt install ros-noetic-rplidar-ros` 后，确认 `/dev/ttyUSB*` 设备号并运行 `roslaunch rplidar_ros rplidar_a1.launch serial_port:=/dev/ttyUSB0 frame_id:=laser`。在无图形界面下可使用 `rostopic hz /scan`、`rostopic echo /scan` 验证数据，必要时 `rosbag record /scan` 拷贝到有 RViz 的环境查看。
