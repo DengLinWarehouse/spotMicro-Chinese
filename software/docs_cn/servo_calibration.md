@@ -6,16 +6,17 @@
 ```yaml
 num_servos: 12
 servo_max_angle_deg: 82.5
-RF_3: {num: 1,  center: 306,range: 385,direction:  1, center_angle_deg:  84.0}
-RF_2: {num: 2,  center: 306,range: 385,direction:  1, center_angle_deg: -27.9}
-RF_1: {num: 3,  center: 306,range: 396,direction: -1, center_angle_deg:  -5.4}
-RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
-.
-.
-.
+# Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
+LF_1: {num: 1,  center: 306, range: 389, direction:  1, center_angle_deg:  -7.6}
+LF_2: {num: 2,  center: 306, range: 397, direction:  1, center_angle_deg:  38.6}
+LF_3: {num: 3,  center: 306, range: 387, direction:  1, center_angle_deg: -82.8}
+RF_1: {num: 4,  center: 306, range: 396, direction: -1, center_angle_deg:  -5.4}
+...
 ```
 
-舵机命名由腿位置缩写加编号组成：“RF” 表示右前腿、“RB” 表示右后腿，左腿分别为 “LF”“LB”。数字 1 对应 Link 1（髋关节），2 对应 Link 2（大腿/肩关节），3 对应 Link 3（小腿/膝关节）。
+舵机命名由腿位置缩写加编号组成："RF" 表示右前腿、"RB" 表示右后腿，左腿分别为 "LF""LB"。数字 1 对应 Link 1（髋关节），2 对应 Link 2（大腿/肩关节），3 对应 Link 3（小腿/膝关节）。
+
+接线顺序为 **左前(1-3) → 右前(4-6) → 左后(7-9) → 右后(10-12)**，每条腿内部按 **肩→大腿→小腿** 排列。
 
 ## 舵机配置字段说明
 * **num_servos**：本平台固定为 12 个舵机。
@@ -24,7 +25,7 @@ RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
 
 * **num**：舵机接入 PCA9685 板的端口（编号 1–16）。
 
-* **center**：对应舵机中心位置的原始 PWM 值。PCA9685 以 12 bit PWM 表示 20 ms 周期脉宽：0 表示无脉冲，4096 表示常高，2048 约等于 10 ms。标准 1.5 ms 脉宽约为 307，可据此微调。使用 `servo_move_keyboard` 将舵机拨到中心，保证双向行程相等。
+* **center**：对应舵机中心位置的原始 PWM 值。PCA9685 以 12 bit PWM 表示 20 ms 周期脉宽：0 表示无脉冲，4096 表示常高，2048 约等于 10 ms。标准 1.5 ms 脉宽约为 307，可据此微调。使用 `servo_move_keyboard` 将舵机拨到中心，保证双向行程相等。
 
 * **range**：覆盖最大正负角范围的原始 PWM 差值，相当于 +θ 与 -θ 两点 PWM 的差。电子表格会自动计算该值并与 `servo_max_angle_deg` 对应。
 
@@ -33,7 +34,7 @@ RB_3: {num: 4,  center: 306,range: 394,direction:  1, center_angle_deg:  90.4}
 * **center_angle_deg**：舵机位于中心 PWM 时的关节角度（各自坐标系下），由表格计算。
 
 ## 舵机安装
-建议在舵机通电并命令到中心位置时安装，使关节处于“中立”姿态，保证常用动作附近拥有最大行程。下图演示了中心姿态示例：
+建议在舵机通电并命令到中心位置时安装，使关节处于"中立"姿态，保证常用动作附近拥有最大行程。下图演示了中心姿态示例：
 
 ![Side View Neutral Positions](assets/1_robot_right_links.png)
 ![Back View Neutral Positions](assets/12_robot_back_overview.png)
