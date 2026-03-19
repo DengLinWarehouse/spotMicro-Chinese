@@ -1,0 +1,55 @@
+舵机初始角度：
+注：舵机角度范围是[1 - 120]度
+注：要考虑到舵机方向，以“左前腿小腿”运动方向为舵机正转方向(角度增大)
+| 通道 | 关节 | 位置 | 卧姿初始角度 |
+| --- | --- | --- |
+| 1 | FL_HIP | 左前肩 | 60 |
+| 2 | FL_UPPER_LEG | 左前大腿 | 60 |
+| 3 | FL_LOWER_LEG | 左前小腿 | 0 |
+| 4 | FR_HIP | 右前肩 | 60 |
+| 5 | FR_UPPER_LEG | 右前大腿 | 60 |
+| 6 | FR_LOWER_LEG | 右前小腿 | 120 |
+| 7 | RL_HIP | 左后肩 | 60 |
+| 8 | RL_UPPER_LEG | 左后大腿 | 60 |
+| 9 | RL_LOWER_LEG | 左后小腿 | 0 |
+|10 | RR_HIP | 右后肩 | 60 |
+|11 | RR_UPPER_LEG | 右后大腿 | 60 |
+|12 | RR_LOWER_LEG | 右后小腿 | 120 |
+
+卧姿：小腿收拢到最小
+
+
+
+
+左边肩部向外旋转45度为正，右边为负。
+左边大腿向后台90度为正，右边为父。
+小腿向前弯为正。
+oneServo
+左前
+Servo  0 cmd:  318  0度
+Servo  0 cmd:  398  +45度
+Servo  1 cmd:  176  0度
+Servo  1 cmd:  378  +90度
+Servo  2 cmd:  398  0度
+Servo  2 cmd:  230  -90度
+右前
+Servo  3 cmd:  296  0度
+Servo  3 cmd:  236  -45度
+Servo  4 cmd:  421  0度
+Servo  4 cmd:  232  -90度
+Servo  5 cmd:   76  0度
+Servo  5 cmd:  246  +90度
+左后
+Servo  6 cmd:  326  0度
+Servo  6 cmd:  376  +45度
+Servo  7 cmd:  182  0度
+Servo  7 cmd:  378  +90度
+Servo  8 cmd:  432  0度
+Servo  8 cmd:  241  -90度
+右后
+Servo  9 cmd:  309  0度
+Servo  9 cmd:  226  -45度
+Servo 10 cmd:  426  0度
+Servo 10 cmd:  235 -90度
+Servo 11 cmd:   66  0度
+Servo 11 cmd:  259  +90度

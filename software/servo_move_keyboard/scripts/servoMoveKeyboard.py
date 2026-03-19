@@ -9,7 +9,7 @@ import sys, select, termios, tty # For terminal keyboard key press reading
 from i2cpwm_board.msg import Servo, ServoArray
 
 # Global variable for number of servos
-numServos = 12 
+numServos = 12
 
 msg = """
 Servo Control Module for 12 Servos.
@@ -20,9 +20,9 @@ quit: stop and quit the program
 oneServo: Move one servo manually, all others will be commanded to their center position
 allServos: Move all servo's manually together
 
-Keyboard commands for One Servo Control 
+Keyboard commands for One Servo Control
 ---------------------------
-   q                y    
+   q                y
             f   g       j   k
     z   x       b   n   m
 
@@ -63,18 +63,18 @@ validCmds = ['quit','oneServo','allServos']
 
 class ServoConvert():
     '''
-    ServoConvert Class encapsulates a servo 
+    ServoConvert Class encapsulates a servo
     Servo has a center value, and range, and is commanded by a value between 0 and 4095.
     This coorsponds to the duty cycle in a 12 bit pwm cycle. Nominally, a servo is commanded with pulses of
-    1 to 2 ms in a 20 ms cycle, with 1.5 ms being the value for center position. 
+    1 to 2 ms in a 20 ms cycle, with 1.5 ms being the value for center position.
     These nominal values would coorespond to integer values of approximately 204, 306, and 409
     for 1 ms, 1.5 ms, and 2 ms, respectively
     '''
     def __init__(self, id=1, center_value=306, direction=1):
         self.value      = center_value
         self._center    = center_value
-        self._min       = 83
-        self._max       = 520
+        self._min       = 184
+        self._max       = 430
         self._dir       = direction
         self.id         = id
 
@@ -141,7 +141,7 @@ class SpotMicroServoControl():
 
         # Create empty ServoArray message with n number of Servos in its array
         self._servo_msg       = ServoArray()
-        for i in range(numServos): 
+        for i in range(numServos):
             self._servo_msg.servos.append(Servo())
 
         # Create the servo array publisher
@@ -167,12 +167,12 @@ class SpotMicroServoControl():
         '''
         for s in self.servos:
             self.servos[s].value = self.servos[s]._center
-    
+
     def reset_all_servos_off(self):
         '''Set all servos to off/freewheel value (pwm of 0)'''
         for s in self.servos:
             self.servos[s].value = 0
-    
+
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -189,7 +189,7 @@ class SpotMicroServoControl():
         # Prompt user with keyboard command information
         # Ability to control individual servo to find limits and center values
         # and ability to control all servos together
-        
+
         while not rospy.is_shutdown():
             print(msg)
             userInput = input("Command?: ")
@@ -202,7 +202,7 @@ class SpotMicroServoControl():
                     print('Final Servo Values')
                     print('--------------------')
                     for i in range(numServos):
-                        print('Servo %2i:   Min: %4i,   Center: %4i,   Max: %4i'%(i,self.servos[i]._min,self.servos[i]._center,self.servos[i]._max))                    
+                        print('Servo %2i:   Min: %4i,   Center: %4i,   Max: %4i'%(i,self.servos[i]._min,self.servos[i]._center,self.servos[i]._max))
                     break
 
                 elif userInput == 'oneServo':
@@ -213,8 +213,8 @@ class SpotMicroServoControl():
                     # First get servo number to command
                     nSrv = -1
                     while (1):
-                        userInput = input('Which servo to control? Enter a number 1 through 12: ')
-                        
+                        userInput = int(input('Which servo to control? Enter a number 1 through 12: '))
+
                         if userInput not in range(1,numServos+1):
                             print("Invalid servo number entered, try again")
                         else:
@@ -224,7 +224,7 @@ class SpotMicroServoControl():
                     # Loop and act on user command
                     print('Enter command, q to go back to option select: ')
                     while (1):
-                       
+
                         userInput = self.getKey()
 
                         if userInput == 'q':
@@ -241,7 +241,7 @@ class SpotMicroServoControl():
                     self.reset_all_servos_center()
                     self.send_servo_msg()
 
-                    print('Enter command, q to go back to option select: ')                   
+                    print('Enter command, q to go back to option select: ')
                     while (1):
 
                         userInput = self.getKey()
@@ -257,17 +257,12 @@ class SpotMicroServoControl():
                                 keyDict[userInput](s)
                             print('All Servos Commanded')
                             self.send_servo_msg()
-                                
-
-
-
-
 
 
             # print self._last_time_cmd_rcv, self.is_controller_connected
             # if not self.is_controller_connected:
             #     self.set_actuators_idle()
-           
+
             # Set the control rate in Hz
             rate = rospy.Rate(10)
             rate.sleep()
