@@ -40,6 +40,12 @@ KeyboardInput --> Command --> Controller --> SpotMicroStickFigure
 
 ## 3. 关键命令备忘
 
+> **★ 每个新终端的第一步**：cd 到 `software_standalone/` 并激活虚拟环境：
+> ```bash
+> # 从仓库根目录 spotMicro-Chinese 出发
+> cd software_standalone && source .venv/bin/activate
+> ```
+
 | 场景 | 命令 |
 | ---- | ---- |
 | 安装开发依赖 | `pip install -e .[dev]` |

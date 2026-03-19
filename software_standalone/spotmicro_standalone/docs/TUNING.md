@@ -20,6 +20,8 @@
 保存修改后，直接重新运行 `spotmicro-teleop --config <file>` 即可，不需要
 重建或签入 ROS 参数服务器。
 
+> **提示**：每个新终端需先 cd 到 `software_standalone/` 并激活虚拟环境（`source .venv/bin/activate`），详见 `docs/USAGE.md`。
+
 ---
 
 ## 2. 舵机/硬件标定

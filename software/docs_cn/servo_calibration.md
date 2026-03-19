@@ -43,12 +43,19 @@ RF_1: {num: 4,  center: 306, range: 396, direction: -1, center_angle_deg:  -5.4}
 ## 使用 `servo_move_keyboard` 校准单个舵机
 连接好 PCA9685 与舵机后，按照以下步骤校准：
 
-1. 在树莓派上启动驱动节点：
-   ```
+> **★ 每个终端都要先执行初始化**（或使用别名 `spot`，详见 `实验操作手册.md`）：
+> ```bash
+> cd <你的catkin_ws路径> && source /opt/ros/noetic/setup.bash && source devel/setup.bash
+> ```
+
+1. 终端 1 — 启动驱动节点：
+   ```bash
+   [初始化]
    rosrun i2cpwm_board i2cpwm_board
    ```
-2. 在同一设备或另一台可通信的 ROS 主机上运行：
-   ```
+2. 终端 2 — 启动校准工具：
+   ```bash
+   [初始化]
    rosrun servo_move_keyboard servoMoveKeyboard.py
    ```
 3. 根据提示输入 `oneServo` 进入单舵机模式。

@@ -22,6 +22,18 @@ CI 或离线设备也可以直接使用 `requirements.txt` 固定依赖（`pip i
 
 ## 2. 运行命令
 
+> **★ 每个新终端都要激活虚拟环境**，否则会报 `ModuleNotFoundError` 或找不到 `spotmicro-teleop` 命令：
+> ```bash
+> # Linux / macOS（从仓库根目录 spotMicro-Chinese 出发）
+> cd software_standalone
+> source .venv/bin/activate
+>
+> # Windows PowerShell（从仓库根目录 spotMicro-Chinese 出发）
+> cd software_standalone
+> .\.venv\Scripts\activate
+> ```
+> 本节所有命令均假设已在 `software_standalone/` 目录下、虚拟环境已激活。
+
 ### 2.1 启动键盘遥控
 
 ```bash
