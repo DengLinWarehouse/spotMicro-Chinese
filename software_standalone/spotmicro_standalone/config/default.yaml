@@ -13,7 +13,9 @@ stance:
   lie_down_foot_x_offset: 0.065
 
 servo:
-  servo_max_angle_deg: 82.5
+  # WARNING: All servo params calibrated for PDI-HV5523MG (120° / 900-2100µs).
+  # If using a different servo model, you MUST update servo_max_angle_deg and recalibrate.
+  servo_max_angle_deg: 55.0  # PDI-HV5523MG: 120° total (±60° from center), 5° safety margin
   layout:
     # Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
     LF_1: {num: 1, center: 306, range: 403, direction: 1, center_angle_deg: -9.0}

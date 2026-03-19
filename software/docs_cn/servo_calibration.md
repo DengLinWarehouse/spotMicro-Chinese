@@ -5,7 +5,7 @@
 舵机配置字典存放于 `spot_micro_motion_cmd.yaml`，示例如下：
 ```yaml
 num_servos: 12
-servo_max_angle_deg: 82.5
+servo_max_angle_deg: 55.0    # PDI-HV5523MG: 120° total (±60° from center), 5° safety margin
 # Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
 LF_1: {num: 1,  center: 306, range: 389, direction:  1, center_angle_deg:  -7.6}
 LF_2: {num: 2,  center: 306, range: 397, direction:  1, center_angle_deg:  38.6}
@@ -21,11 +21,12 @@ RF_1: {num: 4,  center: 306, range: 396, direction: -1, center_angle_deg:  -5.4}
 ## 舵机配置字段说明
 * **num_servos**：本平台固定为 12 个舵机。
 
-* **servo_max_angle_deg**：舵机单侧允许的最大命令角度。普通舵机总行程约 180°（中心左右各 ±90°），但为避免中心误差、端位性能下降或机械干涉，通常设为略低于 90°。82.5° 在该平台上表现可靠。
+* **servo_max_angle_deg**：舵机单侧允许的最大命令角度。本项目使用 PDI-HV5523MG 舵机，总行程为 **120°**（中心左右各 ±60°），设为 **55.0°** 留有 5° 安全余量。如果你使用 180° 舵机（±90°），可适当增大此值（如 82.5°），但 **不得超过舵机实际单侧行程**，否则会导致堵转损坏。
 
 * **num**：舵机接入 PCA9685 板的端口（编号 1–16）。
 
-* **center**：对应舵机中心位置的原始 PWM 值。PCA9685 以 12 bit PWM 表示 20 ms 周期脉宽：0 表示无脉冲，4096 表示常高，2048 约等于 10 ms。标准 1.5 ms 脉宽约为 307，可据此微调。使用 `servo_move_keyboard` 将舵机拨到中心，保证双向行程相等。
+* **center**：对应舵机中心位置的原始 PWM 值。PCA9685 以 12 bit PWM 表示 20 ms 周期脉宽：0 表示无脉冲，4096 表示常高，2048 约等于 10 ms。PDI-HV5523MG 的中心脉宽为 1500 µs，对应 PWM ≈ **307**。使用 `servo_move_keyboard` 将舵机拨到中心，保证双向行程相等。
+  > **PDI-HV5523MG 安全范围**：有效 PWM 范围约 **184–430**（对应 900–2100 µs / 0°–120°），标定时切勿超出此范围。
 
 * **range**：覆盖最大正负角范围的原始 PWM 差值，相当于 +θ 与 -θ 两点 PWM 的差。电子表格会自动计算该值并与 `servo_max_angle_deg` 对应。
 
@@ -95,3 +96,25 @@ RF_1: {num: 4,  center: 306, range: 396, direction: -1, center_angle_deg:  -5.4}
 ## 完成校准
 
 完成所有腿部舵机的两点测量后，将电子表格中标粗的最终结果复制到 `spot_micro_motion_cmd.yaml` 的舵机配置字典中，即可供 ROS 控制软件使用。
+
+如果同时使用 standalone 版本，请同步更新 `software_standalone/spotmicro_standalone/config/default.yaml` 中的对应字段。
+
+## 舵机型号兼容性提醒
+
+本项目所有配置和脚本均针对 **PDI-HV5523MG** 舵机校准：
+
+| 参数 | PDI-HV5523MG | 常见 180° 舵机 |
+| --- | --- | --- |
+| 旋转角度 | 120° | 180° |
+| 脉宽范围 | 900–2100 µs | 500–2500 µs |
+| PCA9685 有效 PWM | 184–430 | 102–512 |
+| servo_max_angle_deg | 55.0 (±60° 减 5° 余量) | 82.5 (±90° 减 7.5° 余量) |
+
+**更换舵机型号时，必须同步修改以下位置的参数：**
+
+1. `spot_micro_motion_cmd.yaml` → `servo_max_angle_deg`
+2. `software_standalone/.../default.yaml` → `servo_max_angle_deg`
+3. `SERVO_PAC9685/raspi_pca9685_test/` 下所有脚本的 `SERVO_MIN_US`、`SERVO_MAX_US`、`SERVO_ANGLE_RANGE`
+4. 标定时的 PWM 安全范围上下界
+
+**使用不匹配的参数可能导致舵机堵转过热、齿轮损坏或电路烧毁。**
