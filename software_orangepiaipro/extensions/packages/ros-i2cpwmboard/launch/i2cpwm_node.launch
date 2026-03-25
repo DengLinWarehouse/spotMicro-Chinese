@@ -1,4 +1,11 @@
 <launch>
-  <node pkg="i2cpwm_board" name="i2cpwm_board_node" type="i2cpwm_board" output="screen" >
+  <!--
+    OrangePi AI Pro I2C 总线映射:
+      GPIO2_11 (Pin 5) = SCL7
+      GPIO2_12 (Pin 3) = SDA7
+      → 40-pin 扩展座 I2C = /dev/i2c-7
+  -->
+  <node pkg="i2cpwm_board" name="i2cpwm_board_node" type="i2cpwm_board" output="screen">
+    <param name="i2c_bus" value="/dev/i2c-7" />
   </node>
 </launch>

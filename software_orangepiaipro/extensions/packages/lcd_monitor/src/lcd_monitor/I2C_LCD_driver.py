@@ -17,10 +17,14 @@ Made available under GNU GENERAL PUBLIC LICENSE
 
 """
 
-# i2c bus (0 -- original Pi, 1 -- Rev 2 Pi)
-I2CBUS = 1
+# i2c bus
+# Raspberry Pi: I2CBUS = 1
+# OrangePi AI Pro (Huawei Ascend image): I2CBUS = 7
+#   Pin 3 (GPIO2_12/SDA7) -> SDA, Pin 5 (GPIO2_11/SCL7) -> SCL
+I2CBUS = 7
 
 # LCD Address
+# Common addresses: 0x27 or 0x3f (depends on address jumpers A0-A2)
 ADDRESS = 0x27
 
 import smbus
