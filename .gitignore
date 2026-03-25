@@ -1,23 +1,150 @@
+# ============================================================
+# ROS / Catkin Build Artifacts
+# ============================================================
+software/devel/
+software/build/
+software/logs/
+software_orangepiaipro/devel/
+software_orangepiaipro/build/
+software_orangepiaipro/logs/
+software_standalone/devel/
+software_standalone/build/
+software_standalone/logs/
+
+# ROS generated message headers (if any)
+msg_gen/
+srv_gen/
+action_gen/
+srv/_*.sh
+
+# ============================================================
+# Python
+# ============================================================
 *.pyc
+*.pyo
+*.pyd
 __pycache__/
-.pytest_cache/
-.mypy_cache/
-.coverage
-
-.vscode/
-.idea/
-
-.venv/
-env/
-venv/
-
-*.swp
-*.swo
-
+*.so
+.Python
 build/
 dist/
 *.egg-info/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+*.manifest
+*.spec
 
-software_standalone/.venv/
-hardware/~$材料清单.xlsx
-hardware/3D模型及打印文件/打印全盘文件
+# ============================================================
+# Virtual Environments
+# ============================================================
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# ============================================================
+# IDE / Editor
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+*.orig
+
+# ============================================================
+# ROS Parameters / Calibration Data (machine-specific)
+# ============================================================
+# These files contain machine-specific calibration values
+# and should be managed per-deployment, not committed.
+*.yaml.bak
+*.yml.bak
+config/calibration/
+config/secrets/
+calibration/
+*.calibration
+*.param
+
+# ============================================================
+# Hardware / Embedded (machine-specific)
+# ============================================================
+/dev/
+/proc/
+/sys/
+*.hex
+*.bin (except 3D models)
+
+# ============================================================
+# Documentation build outputs (local only)
+# ============================================================
+docs/_build/
+docs/.doctrees/
+
+# ============================================================
+# Temporary / OS-specific
+# ============================================================
+*.log
+*.tmp
+*.cache
+core
+*~
+
+# ============================================================
+# Windows-specific
+# ============================================================
+~$*
+Thumbs.db
+Desktop.ini
+
+# ============================================================
+# OrangePi / ARM Linux specific
+# ============================================================
+# SSH keys
+.ssh/
+known_hosts
+
+# GPU / acceleration libraries (device-specific)
+*.so.user
+*.aarch64
+
+# ROS bag files (can be very large)
+*.bag
+*.mcap
+
+# ============================================================
+# Hardware documentation files
+# ============================================================
+hardware/~$*.xlsx
+hardware/~$*.pdf
+hardware/~$*.docx
+hardware/~$*.dwg
+
+# ============================================================
+# Keep 3D print files but ignore large batch folders
+# ============================================================
+hardware/3D模型及打印文件/打印全盘文件/
+!hardware/3D模型及打印文件/打印全盘文件/*.stl
+!hardware/3D模型及打印文件/打印全盘文件/*.step
+!hardware/3D模型及打印文件/打印全盘文件/*.3mf
+
+# ============================================================
+# Git submodules (build inside)
+# ============================================================
+# spot_micro_kinematics_cpp libs are git submodules
+# their build/ directories should be ignored
+spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/build/
+spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/devel/
+extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/build/
+extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/devel/
