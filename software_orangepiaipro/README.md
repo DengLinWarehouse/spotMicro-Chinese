@@ -1,5 +1,7 @@
 # Spot Micro Quadruped Project
 
+> Legacy upstream note: this repository originally targets Raspberry Pi + Ubuntu 16.04 + ROS Kinetic. For Orange Pi AI Pro + Ubuntu 22.04 + ROS1 Noetic source builds, use the Chinese migration notes under `docs_cn/README.md` and `docs_cn/实验操作手册.md` instead of compiling this mirror in place.
+
 ![Spot Micro Walking](assets/spot_micro_walking.gif)
 ![RVIZ](assets/rviz_animation.gif)
 ![slam](assets/spot_micro_slam.gif)

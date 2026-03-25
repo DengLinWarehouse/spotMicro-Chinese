@@ -17,7 +17,7 @@
 
 
     <!-- If run_standalone is false, run i2c_pwmboard (the unless argument below)-->
-    <node unless="$(arg run_standalone)" name="i2cpwm_board_node" pkg="i2cpwm_board" type="i2cpwm_board" output="screen">                                           │walk: Start walk mode and keyboard motion control
+    <node unless="$(arg run_standalone)" name="i2cpwm_board_node" pkg="i2cpwm_board" type="i2cpwm_board" output="screen">
     </node>  
 
 

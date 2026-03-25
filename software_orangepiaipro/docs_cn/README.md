@@ -1,12 +1,84 @@
 # 软件部分
 
-该目录即一个标准的 catkin 工作空间（src 根目录）。已经将顶层 `CMakeLists.txt` 修改为通用的 `catkin_workspace()` 模式，可直接在 ROS Kinetic/Melodic/Noetic 中使用：
+## 重要提示：Orange Pi Ubuntu 22.04 不建议在此目录原地构建
+
+截至 2026-03，本目录更适合作为 **源码镜像 + 文档入口**。如果主控是 Orange Pi AI Pro，系统为 Ubuntu 22.04，并且 ROS1 Noetic 需要源码编译，请采用下面的双工作区方案，避免以后误操作：
+
+1. `~/Desktop/SpotMicro/ros_noetic_ws`  
+   - 只放 ROS1 Noetic 基础源码  
+   - 负责源码编译 `roscore`、`roscpp`、`roslaunch` 等基础能力  
+   - **不要**把 SpotMicro 业务包混进来
+2. `~/Desktop/SpotMicro/spotmicro_ws`  
+   - 只放机器狗相关包  
+   - 先 `source ~/Desktop/SpotMicro/ros_noetic_ws/devel/setup.bash`，再在此工作区编译和运行
+
+推荐初始化方式：
 
 ```bash
-cd <your_catkin_ws>
-catkin config --extend /opt/ros/$ROS_DISTRO
-catkin build    # 或 catkin_make
+mkdir -p ~/Desktop/SpotMicro/spotmicro_ws/src
+cd ~/Desktop/SpotMicro/spotmicro_ws
+source ~/Desktop/SpotMicro/ros_noetic_ws/devel/setup.bash
+catkin_make
 ```
+
+如果以后要开新终端，推荐在 `~/.bashrc` 中同时保留：
+
+```bash
+source ~/Desktop/SpotMicro/ros_noetic_ws/devel/setup.bash
+source ~/Desktop/SpotMicro/spotmicro_ws/devel/setup.bash
+```
+
+> 对于 Orange Pi Ubuntu 22.04，**不要**直接在 `software_orangepiaipro` 根目录执行 `catkin_make` 并期待它充当 ROS base + 机器人包的混合工作区。这样最容易把基础环境和业务包搅在一起，后续升级和排错都会变难。
+
+## 推荐迁移顺序
+
+先迁最核心、最容易验证的包到 `spotmicro_ws/src`：
+
+| 优先级 | 包 | 说明 |
+| --- | --- | --- |
+| 1 | `ros-i2cpwmboard` | PCA9685/I2C 驱动，必须先通 |
+| 2 | `spot_micro_motion_cmd` | 主运动控制器 |
+| 3 | `spot_micro_launch` | 启动组织 |
+| 4 | `spot_micro_rviz` | 模型与可视化 |
+| 5 | `spot_micro_keyboard_command` | 最基础的人机输入 |
+
+如需调单舵机或做辅助可视化，再补：
+
+- `servo_move_keyboard`
+- `spot_micro_plot`
+- `lcd_monitor`
+
+## 2026-03 推荐选包策略
+
+为减少 Orange Pi Ubuntu 22.04 上的兼容性风险，当前建议按下面的组合迁移：
+
+| 包 | 推荐来源 | 原因 |
+| --- | --- | --- |
+| `ros-i2cpwmboard` | 根目录版 | 保留了完整的 I2C 依赖与源码结构；已修正文档中的 Orange Pi I2C 参数名 |
+| `spot_micro_motion_cmd` | 根目录版 | 主控制逻辑以根目录版为主；已修正 `launch/motion_cmd.launch` 中的错误文本污染 |
+| `spot_micro_launch` | 根目录版 | 仅根目录存在 |
+| `spot_micro_rviz` | 根目录版 | 仅根目录存在 |
+| `spot_micro_keyboard_command` | 根目录版包结构 + `extensions` 中的脚本 | `extensions` 里脚本更偏向 Python 3，但根目录保留了 launch 文件 |
+| `servo_move_keyboard` | 根目录版包结构 + `extensions` 中的脚本 | 同上 |
+| `spot_micro_plot` | 根目录版包结构 + `extensions` 中的脚本/kinematics 子目录 | `extensions` 中补齐了更多 Python 资源 |
+| `lcd_monitor` | 根目录版包结构 + `extensions` 中的 Python 文件 | `extensions` 中包含 Python 3 调整 |
+
+## root 包与 extensions 包如何选
+
+迁移时不要盲目只复制根目录同名包。原则如下：
+
+- 根目录包：保留上游/历史结构，便于对照
+- `extensions/packages`：优先放置已经做过 Python 3、Noetic 或本地化修订的版本
+
+尤其在 Orange Pi Ubuntu 22.04 上，优先检查这些扩展包是否比根目录版本更新：
+
+- `extensions/packages/spot_micro_keyboard_command`
+- `extensions/packages/servo_move_keyboard`
+- `extensions/packages/spot_micro_plot`
+- `extensions/packages/spot_micro_motion_cmd`
+- `extensions/packages/ros-i2cpwmboard`
+
+> 简单说：这里是“资料总库”，`spotmicro_ws/src` 才是“实际运行区”。
 
 ## 仓库结构
 
@@ -23,17 +95,17 @@ catkin build    # 或 catkin_make
 
 ## 中文指南索引
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。
-- `SOFTWARE_ASSESSMENT.md`：软件可靠性评估与待办。
 - `LEARNING_GUIDE.md`：学习路线与背景知识。
-- `实验操作手册.md`：一步一步跑通实验程序的详细 runbook（环境准备、构建、调试、排错），零基础必读。
+- `实验操作手册.md`：一步一步跑通实验程序的详细 runbook；已补充 Orange Pi Ubuntu 22.04 与双工作区避坑说明。
 - `../docs/build_notes.md`：记录复刻过程中的额外构建问题（CATKIN_IGNORE、子模块、依赖安装），与 runbook 互补。
 
 
 ## 构建前置
 
-1. 安装 ROS 所需依赖：`sudo apt install python3-rosdep python3-vcstool libeigen3-dev`.
-2. 可选依赖：`sudo apt install doxygen python3-smbus python3-matplotlib`.
-3. 初始化 workspace：`catkin init && catkin config --extend /opt/ros/$ROS_DISTRO`.
+1. 若是 Ubuntu 20.04 + 官方 Noetic apt 方案，安装 ROS 所需依赖：`sudo apt install python3-rosdep python3-vcstool libeigen3-dev`.
+2. 若是 Orange Pi Ubuntu 22.04 + ROS1 源码编译方案，先完成 `ros_noetic_ws` 基础环境，再进入 `spotmicro_ws` 迁移本目录中的包。
+3. 可选依赖：`sudo apt install doxygen python3-smbus python3-matplotlib`.
+4. 初始化 workspace：`catkin init && catkin config --extend /opt/ros/$ROS_DISTRO`.
 
 ## 启动顺序（建议）
 
