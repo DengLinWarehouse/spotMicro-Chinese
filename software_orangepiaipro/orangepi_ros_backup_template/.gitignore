@@ -1,0 +1,18 @@
+# Ignore generated artifacts
+**/build/
+**/devel/
+**/install/
+**/.catkin_tools/
+**/logs/
+**/.ros/
+**/__pycache__/
+*.pyc
+*.pyo
+*.swp
+*.swo
+*.tar.gz
+*.zip
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

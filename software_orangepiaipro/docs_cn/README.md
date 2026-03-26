@@ -94,6 +94,8 @@ source ~/Desktop/SpotMicro/spotmicro_ws/devel/setup.bash
 其余子目录为 kinematics 子库、LCD 驱动、舵机标定文档等。
 
 ## 中文指南索引
+- `ORANGEPI_AI_PRO_NOETIC_DEPLOYMENT.md`：基于 2026-03 实际落地过程整理的香橙派 AI Pro + Ubuntu 22.04 + ROS1 Noetic + SpotMicro 部署总结，适合作为后续批量复刻的标准参考。
+- `../orangepi_ros_backup_template/README.md`：香橙派 ROS 远程备份模板入口，包含源码导出脚本、依赖清单采集脚本、恢复说明和补丁目录规范，适合把 `ros_noetic_ws` / `spotmicro_ws` 备份到远程仓库。
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。
 - `LEARNING_GUIDE.md`：学习路线与背景知识。
 - `实验操作手册.md`：一步一步跑通实验程序的详细 runbook；已补充 Orange Pi Ubuntu 22.04 与双工作区避坑说明。

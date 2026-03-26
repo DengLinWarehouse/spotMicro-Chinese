@@ -1,0 +1,15 @@
+# notes 模板
+
+- 设备型号：Orange Pi AI Pro
+- 系统版本：Ubuntu 22.04
+- ROS base 工作区：~/Desktop/SpotMicro/ros_noetic_ws
+- SpotMicro overlay 工作区：~/Desktop/SpotMicro/spotmicro_ws
+- 是否关闭测试：是，使用 -DCATKIN_ENABLE_TESTING=OFF
+- Python 解释器：/usr/bin/python3
+- 是否安装 python3-defusedxml：
+- 是否安装 libi2c-dev：
+- I2C 总线号：
+- PCA9685 地址：
+- extensions/packages 实际采用的包：
+- 额外手工补丁：
+- 稳定可运行命令：
