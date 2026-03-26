@@ -1,0 +1,15 @@
+timestamp=2026-03-26T10:15:30+08:00
+hostname=orangepiaipro
+kernel=Linux orangepiaipro 5.10.0+ #1 SMP Tue Nov 26 15:45:36 CST 2024 aarch64 aarch64 aarch64 GNU/Linux
+Distributor ID:	Ubuntu
+Description:	Ubuntu 22.04.3 LTS
+Release:	22.04
+Codename:	jammy
+python3=/usr/local/miniconda3/bin/python3
+Python 3.9.2
+gcc=/usr/bin/gcc
+gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+cmake=/usr/bin/cmake
+cmake version 3.22.1
+git=/usr/bin/git
+git version 2.34.1

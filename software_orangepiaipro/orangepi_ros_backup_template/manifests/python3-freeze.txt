@@ -1,0 +1,176 @@
+absl-py==2.1.0
+aclruntime @ file:///opt/complete/download/aclruntime-0.0.2-cp39-cp39-linux_aarch64.whl
+ais-bench @ file:///opt/complete/download/ais_bench-0.0.2-py3-none-any.whl
+albumentations==1.3.1
+annotated-types==0.6.0
+anyio==4.2.0
+appdirs==1.4.4
+argon2-cffi==23.1.0
+argon2-cffi-bindings==21.2.0
+arrow==1.3.0
+asttokens==2.4.1
+astunparse==1.6.3
+async-lru==2.0.4
+async-timeout==4.0.3
+attrs==23.2.0
+auto-tune @ file:///root/selfgz159581778/compiler/lib64/auto_tune-0.1.0-py3-none-any.whl
+Babel==2.14.0
+backcall==0.2.0
+beautifulsoup4==4.12.3
+bleach==6.1.0
+boltons @ file:///croot/boltons_1677628695607/work
+brotlipy==0.7.0
+certifi @ file:///croot/certifi_1700501676087/work/certifi
+cffi @ file:///tmp/abs_2eqak_bqcf/croots/recipe/cffi_1659598644692/work
+charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
+click==8.1.7
+comm==0.2.1
+conda @ file:///croot/conda_1694544162707/work
+conda-content-trust @ file:///tmp/abs_d9e8d879-c7bd-425e-87af-59f595eb114bfmj_f2_x/croots/recipe/conda-content-trust_1658126375626/work
+conda-package-handling @ file:///croot/conda-package-handling_1672865005623/work
+conda_package_streaming @ file:///croot/conda-package-streaming_1670508156500/work
+construct==2.10.70
+contourpy==1.2.0
+croniter==2.0.1
+cryptography @ file:///croot/cryptography_1673298758482/work
+cycler==0.12.1
+dataflow @ file:///root/selfgz159581778/compiler/lib64/dataflow-0.0.1-py3-none-any.whl
+debugpy==1.8.0
+decorator==5.1.1
+defusedxml==0.7.1
+exceptiongroup==1.2.0
+fastjsonschema==2.19.1
+ffmpeg-python==0.2.0
+filelock==3.13.1
+fonttools==4.47.2
+fqdn==1.5.1
+fsspec==2023.12.2
+future==0.18.3
+hccl @ file:///root/selfgz159581778/compiler/lib64/hccl-0.1.0-py3-none-any.whl
+hccl-parser @ file:///usr/local/Ascend/ascend-toolkit/7.0.0/toolkit/tools/hccl_parser-0.1-py3-none-any.whl
+idna @ file:///croot/idna_1666125574438/work
+ifaddr==0.2.0
+imageio==2.33.1
+importlib-metadata==7.0.1
+importlib-resources==6.1.1
+ipykernel==6.29.0
+ipython==7.34.0
+ipywidgets==8.1.1
+isoduration==20.11.0
+jedi==0.19.1
+Jinja2==3.1.3
+joblib==1.3.2
+json5==0.9.14
+jsonpatch @ file:///tmp/build/80754af9/jsonpatch_1615747632069/work
+jsonpointer==2.1
+jsonschema==4.21.1
+jsonschema-specifications==2023.12.1
+jupyter-events==0.9.0
+jupyter-lsp==2.2.2
+jupyter_client==8.6.0
+jupyter_core==5.7.1
+jupyter_server==2.12.5
+jupyter_server_terminals==0.5.2
+jupyterlab==4.0.11
+jupyterlab-widgets==3.0.9
+jupyterlab_pygments==0.3.0
+jupyterlab_server==2.25.2
+kiwisolver==1.4.5
+lazy_loader==0.3
+MarkupSafe==2.1.4
+matplotlib==3.8.2
+matplotlib-inline==0.1.6
+micloud==0.6
+mindspore==2.2.14
+mindspore-lite @ https://ms-release.obs.cn-north-4.myhuaweicloud.com/2.2.11/MindSpore/lite/release/linux/aarch64/cloud_fusion/python39/mindspore_lite-2.2.11-cp39-cp39-linux_aarch64.whl
+mistune==3.0.2
+mpmath==1.3.0
+msadvisor @ file:///usr/local/Ascend/ascend-toolkit/7.0.0/tools/msadvisor/python/msadvisor-1.0.0-cp37-abi3-linux_aarch64.whl
+nbclient==0.9.0
+nbconvert==7.14.2
+nbformat==5.9.2
+nest-asyncio==1.6.0
+networkx==3.2.1
+notebook_shim==0.2.3
+numpy==1.22.4
+op-compile-tool @ file:///root/selfgz159581778/compiler/lib64/op_compile_tool-0.1.0-py3-none-any.whl
+op-gen @ file:///usr/local/Ascend/ascend-toolkit/7.0.0/toolkit/tools/op_gen-0.1-py3-none-any.whl
+op-test-frame @ file:///usr/local/Ascend/ascend-toolkit/7.0.0/toolkit/tools/op_test_frame-0.1-py3-none-any.whl
+opc-tool @ file:///root/selfgz159581778/compiler/lib64/opc_tool-0.1.0-py3-none-any.whl
+opencv-python-headless==4.9.0.80
+overrides==7.6.0
+packaging @ file:///croot/packaging_1693575181127/work
+pandocfilters==1.5.1
+parso==0.8.3
+pathlib2==2.3.7.post1
+pexpect==4.9.0
+pickleshare==0.7.5
+pillow==10.2.0
+platformdirs==4.1.0
+pluggy @ file:///opt/conda/conda-bld/pluggy_1648109264631/work
+prometheus-client==0.19.0
+prompt-toolkit==3.0.43
+protobuf==3.20.0
+psutil==5.9.8
+ptyprocess==0.7.0
+pycocotools==2.0.7
+pycosat @ file:///croot/pycosat_1666805506522/work
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+pycryptodome==3.20.0
+pydantic==2.5.3
+pydantic_core==2.14.6
+Pygments==2.17.2
+pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
+pyparsing==3.1.1
+PySocks @ file:///root/miniconda3/conda-bld/pysocks_1614704957454/work
+python-dateutil==2.8.2
+python-json-logger==2.0.7
+python-miio @ git+https://github.com/rytilahti/python-miio.git@658ee2e82e54233372f19e4f67bbf055b60eaee4
+pytz==2023.3.post1
+PyYAML==6.0.1
+pyzmq==25.1.2
+qudida==0.0.4
+referencing==0.32.1
+requests==2.31.0
+rfc3339-validator==0.1.4
+rfc3986-validator==0.1.1
+rpds-py==0.17.1
+ruamel.yaml @ file:///croot/ruamel.yaml_1666307131939/work
+ruamel.yaml.clib @ file:///croot/ruamel.yaml.clib_1666302244777/work
+schedule-search @ file:///root/selfgz159581778/compiler/lib64/schedule_search-0.1.0-py3-none-any.whl
+scikit-image==0.22.0
+scikit-learn==1.4.0
+scikit-video==1.1.11
+scipy==1.12.0
+Send2Trash==1.8.2
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+sniffio==1.3.0
+soupsieve==2.5
+sympy==1.12
+te @ file:///root/selfgz159581778/compiler/lib64/te-0.4.0-py3-none-any.whl
+terminado==0.18.0
+threadpoolctl==3.2.0
+tifffile==2023.12.9
+tinycss2==1.2.1
+tomli==2.0.1
+toolz @ file:///croot/toolz_1667464081129/work
+torch==2.1.0
+torch-npu @ file:///root/torch_npu-2.1.0.post2%2Bgit64bdab5-cp39-cp39-linux_aarch64.whl
+torchaudio==2.1.0
+torchvision==0.16.0
+tornado==6.4
+tqdm @ file:///opt/conda/conda-bld/tqdm_1664392684319/work
+traitlets==5.14.1
+types-python-dateutil==2.8.19.20240106
+typing_extensions==4.9.0
+tzlocal==5.2
+uri-template==1.3.0
+urllib3 @ file:///croot/urllib3_1673575511138/work
+wcwidth==0.2.13
+webcolors==1.13
+webencodings==0.5.1
+websocket-client==1.7.0
+widgetsnbextension==4.0.9
+zeroconf==0.131.0
+zipp==3.17.0
+zstandard @ file:///opt/conda/conda-bld/zstandard_1663827375299/work
