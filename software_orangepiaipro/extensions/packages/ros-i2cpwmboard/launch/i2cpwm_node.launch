@@ -4,9 +4,8 @@
       GPIO2_11 (Pin 5) = SCL7
       GPIO2_12 (Pin 3) = SDA7
       → 40-pin 扩展座 I2C = /dev/i2c-7
-      注意：当前节点源码读取的是 `i2c_device_number`，不是 `i2c_bus` 字符串路径。
+      注意：当前节点源码使用普通 NodeHandle 读取参数，因此这里必须写成全局参数。
   -->
-  <node pkg="i2cpwm_board" name="i2cpwm_board_node" type="i2cpwm_board" output="screen">
-    <param name="i2c_device_number" value="7" />
-  </node>
+  <param name="/i2c_device_number" value="7" />
+  <node pkg="i2cpwm_board" name="i2cpwm_board_node" type="i2cpwm_board" output="screen" />
 </launch>

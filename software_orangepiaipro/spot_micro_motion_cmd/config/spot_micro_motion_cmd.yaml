@@ -23,23 +23,22 @@ lie_down_foot_x_offset: 0.065 # Fwd/back offset of all(?) feet from default stan
 num_servos: 12
 servo_max_angle_deg: 55.0  # PDI-HV5523MG: 120° total (±60°), 5° safety margin
 # Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
-# Recalibrated 2026-03-24: two-point method, raw data from 舵机标定.txt (2026-03-18)
-# Center: all 306 (physical midpoint ≈ 1500µs). center_angle_deg = 0deg position offset.
-# ⚠️ Note: 7 servos have large center_angle_deg (e.g. RF_3=+121.8°), meaning the 0deg
-#   physical position is far from servo horn center. This is expected with current assembly.
-#   Full symmetric range is achieved only by repositioning servo horns (optional).
-LF_1: {num: 1,  center: 306, range: 196, direction:  1, center_angle_deg:  -6.8}
-LF_2: {num: 2,  center: 306, range: 244, direction:  1, center_angle_deg:  58.0}  # R=244 to ensure PWM_min≥184 (was 246, gave 183.0)
-LF_3: {num: 3,  center: 306, range: 205, direction:  1, center_angle_deg: -49.3}
-RF_1: {num: 4,  center: 306, range: 147, direction:  1, center_angle_deg:   7.5}
-RF_2: {num: 5,  center: 306, range: 231, direction:  1, center_angle_deg: -54.8}
-RF_3: {num: 6,  center: 306, range: 208, direction:  1, center_angle_deg: 121.8}
-LB_1: {num: 7,  center: 306, range: 122, direction:  1, center_angle_deg: -18.0}
-LB_2: {num: 8,  center: 306, range: 240, direction:  1, center_angle_deg:  56.9}
-LB_3: {num: 9,  center: 306, range: 233, direction:  1, center_angle_deg: -59.4}
-RB_1: {num: 10, center: 306, range: 203, direction:  1, center_angle_deg:  -1.6}
-RB_2: {num: 11, center: 306, range: 233, direction:  1, center_angle_deg: -56.5}
-RB_3: {num: 12, center: 306, range: 236, direction:  1, center_angle_deg: 111.9}
+# Recalibrated 2026-03-26 on Orange Pi AI Pro after servo reassembly.
+# Two-point measurements were taken from servo_move_keyboard with center PWM fixed at 306.
+# Several joints reach their calibration point near the servo's physical limit; the values below
+# reflect the real measured travel that was confirmed reachable on hardware.
+LF_1: {num: 1,  center: 306, range: 139, direction:  1, center_angle_deg:  -3.2}
+LF_2: {num: 2,  center: 306, range: 247, direction:  1, center_angle_deg:  -4.9}
+LF_3: {num: 3,  center: 306, range: 232, direction:  1, center_angle_deg:   4.7}
+RF_1: {num: 4,  center: 306, range: 127, direction:  1, center_angle_deg:   3.5}
+RF_2: {num: 5,  center: 306, range: 248, direction:  1, center_angle_deg:  -3.1}
+RF_3: {num: 6,  center: 306, range: 220, direction:  1, center_angle_deg: -11.0}
+LB_1: {num: 7,  center: 306, range:  98, direction:  1, center_angle_deg: -28.1}
+LB_2: {num: 8,  center: 306, range: 238, direction:  1, center_angle_deg:  -4.6}
+LB_3: {num: 9,  center: 306, range: 220, direction:  1, center_angle_deg: -15.5}
+RB_1: {num: 10, center: 306, range: 108, direction:  1, center_angle_deg:   3.1}
+RB_2: {num: 11, center: 306, range: 244, direction:  1, center_angle_deg:  -4.5}
+RB_3: {num: 12, center: 306, range: 227, direction:  1, center_angle_deg:  -0.5}
 
 # Control Parameters
 transit_tau: 0.3 # Time constant in seconds for first order filters during transition state
@@ -114,4 +113,3 @@ plot_mode: false # Publishes data for the python plotting node to work
 
 # Standalone mode
 standalone_mode: false # Enables node to run without i2cpwnboard
-

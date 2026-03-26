@@ -3,6 +3,9 @@
 <!-- via command line arguments -->
 
 <launch>
+    <!-- i2cpwm_board uses a non-private NodeHandle, so the bus index must be exposed globally. -->
+    <param name="/i2c_device_number" value="7" />
+
     <!-- Optional command line argument to run this node standalone (without i2c_pwmboard)  -->
     <!-- Useful for running or debugging program on a PC instead of a rpi -->
     <arg name="run_standalone" default="false"/>
@@ -18,7 +21,7 @@
 
     <!-- If run_standalone is false, run i2c_pwmboard (the unless argument below)-->
     <node unless="$(arg run_standalone)" name="i2cpwm_board_node" pkg="i2cpwm_board" type="i2cpwm_board" output="screen">
-    </node>  
+    </node>
 
 
     <!-- Run the spot micro motion command node-->
