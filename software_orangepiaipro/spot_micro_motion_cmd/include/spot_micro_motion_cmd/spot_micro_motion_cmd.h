@@ -28,6 +28,7 @@ struct SpotMicroNodeConfig {
   float lie_down_feet_x_offset;
   int num_servos;
   float servo_max_angle_deg;
+  float servo_proportional_limit;
   std::map<std::string, std::map<std::string, float>> servo_config;
   float dt;
   float transit_tau;

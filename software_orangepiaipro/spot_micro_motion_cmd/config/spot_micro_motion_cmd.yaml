@@ -22,6 +22,7 @@ lie_down_foot_x_offset: 0.065 # Fwd/back offset of all(?) feet from default stan
 # If using a different servo model, you MUST update servo_max_angle_deg and recalibrate.
 num_servos: 12
 servo_max_angle_deg: 55.0  # PDI-HV5523MG: 120° total (±60°), 5° safety margin
+servo_proportional_limit: 2.5  # Raise the clip threshold when calibrated travel exceeds +/-1.0.
 # Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
 # Recalibrated 2026-03-26 on Orange Pi AI Pro after servo reassembly.
 # Two-point measurements were taken from servo_move_keyboard with center PWM fixed at 306.

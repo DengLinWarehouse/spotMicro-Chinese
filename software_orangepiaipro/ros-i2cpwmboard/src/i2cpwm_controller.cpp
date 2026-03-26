@@ -576,12 +576,6 @@ static void _set_pwm_interval (int servo, int start, int end)
  */
 static void _set_pwm_interval_proportional (int servo, float value)
 {
-	// need a little wiggle room to allow for accuracy of a floating point value
-	if ((value < -1.0001) || (value > 1.0001)) {
-		ROS_ERROR("Invalid proportion value %f :: proportion values must be between -1.0 and 1.0", value);
-		return;
-	}
-
 	servo_config* configp = &(_servo_configs[servo-1]);
 	
 	if ((configp->center < 0) ||(configp->range < 0)) {

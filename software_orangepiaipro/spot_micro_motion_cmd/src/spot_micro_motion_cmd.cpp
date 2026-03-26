@@ -254,15 +254,16 @@ void SpotMicroMotionCmd::publishServoProportionalCommand() {
     float center_ang_rad = servo_config_params["center_angle_deg"]*M_PI/180.0f;
     float servo_proportional_cmd = (cmd_ang_rad - center_ang_rad) /
                                    (smnc_.servo_max_angle_deg*M_PI/180.0f);
+    float proportional_limit = smnc_.servo_proportional_limit;
  
-    if (servo_proportional_cmd > 1.0f) {
-      servo_proportional_cmd = 1.0f;
-      ROS_WARN("Proportional Command above +1.0 was computed, clipped to 1.0");
+    if (servo_proportional_cmd > proportional_limit) {
+      servo_proportional_cmd = proportional_limit;
+      ROS_WARN("Proportional Command above +%1.2f was computed, clipped", proportional_limit);
       ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
  
-    } else if (servo_proportional_cmd < -1.0f) {
-      servo_proportional_cmd = -1.0f;
-      ROS_WARN("Proportional Command below -1.0 was computed, clipped to -1.0");
+    } else if (servo_proportional_cmd < -proportional_limit) {
+      servo_proportional_cmd = -proportional_limit;
+      ROS_WARN("Proportional Command below -%1.2f was computed, clipped", proportional_limit);
       ROS_WARN("Joint %s, Angle: %1.2f", servo_name.c_str(), cmd_ang_rad*180.0/M_PI);
     }
  
@@ -346,6 +347,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("lie_down_foot_x_offset", smnc_.lie_down_feet_x_offset);
   pnh_.getParam("num_servos", smnc_.num_servos);
   pnh_.getParam("servo_max_angle_deg", smnc_.servo_max_angle_deg);
+  pnh_.param("servo_proportional_limit", smnc_.servo_proportional_limit, 1.0f);
   pnh_.getParam("transit_tau", smnc_.transit_tau);
   pnh_.getParam("transit_rl", smnc_.transit_rl);
   pnh_.getParam("transit_angle_rl", smnc_.transit_angle_rl);
