@@ -1,5 +1,8 @@
 #include "spot_micro_walk.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <eigen3/Eigen/Geometry>
 
 #include "spot_micro_transition_stand.h"
@@ -38,15 +41,17 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     changeState(smmc, std::make_unique<SpotMicroTransitionStandState>());
 
   } else {
+    SpotMicroNodeConfig gait_smnc = buildAdaptiveGaitConfig(smnc_, cmd);
+
     // Update gate phasing data
-    updatePhaseData();
+    updatePhaseData(gait_smnc);
 
     // Step the gait controller
-    body_state_cmd->leg_feet_pos = stepGait(body_state, cmd, smnc, smmc->getNeutralStance()); 
+    body_state_cmd->leg_feet_pos = stepGait(body_state, cmd, gait_smnc, smmc->getNeutralStance()); 
 
-    if (smnc_.num_phases == 8) {
+    if (gait_smnc.num_phases == 8) {
       // Step body shift controller, only for 8 phase gait
-      body_state_cmd->xyz_pos = stepBodyShift(body_state, cmd, smnc);
+      body_state_cmd->xyz_pos = stepBodyShift(body_state, cmd, gait_smnc);
     } 
     
     // Set servo data and publish command
@@ -83,44 +88,93 @@ void SpotMicroWalkState::init(const smk::BodyState& body_state,
 }
 
 
-void SpotMicroWalkState::updatePhaseData() {
-  int phase_time = ticks_ % smnc_.phase_length;
+void SpotMicroWalkState::updatePhaseData(const SpotMicroNodeConfig& smnc) {
+  int phase_time = ticks_ % smnc.phase_length;
   int phase_sum = 0;
 
   // Update phase index and subphase ticks
-  for (int i = 0; i < smnc_.num_phases; i++) {
-    phase_sum += smnc_.phase_ticks[i];
+  for (int i = 0; i < smnc.num_phases; i++) {
+    phase_sum += smnc.phase_ticks[i];
     if (phase_time < phase_sum) {
       phase_index_ = i;
-      subphase_ticks_ = phase_time - phase_sum + smnc_.phase_ticks[i];
+      subphase_ticks_ = phase_time - phase_sum + smnc.phase_ticks[i];
       break;
     }
   }
 
   // Update contact feet states
-  if (smnc_.rb_contact_phases[phase_index_] == 0) {
+  if (smnc.rb_contact_phases[phase_index_] == 0) {
     contact_feet_states_.right_back_in_swing = true;
   } else {
     contact_feet_states_.right_back_in_swing = false;
   }
 
-  if (smnc_.rf_contact_phases[phase_index_] == 0) {
+  if (smnc.rf_contact_phases[phase_index_] == 0) {
     contact_feet_states_.right_front_in_swing = true;
   } else {
     contact_feet_states_.right_front_in_swing = false;
   }
 
-  if (smnc_.lf_contact_phases[phase_index_] == 0) {
+  if (smnc.lf_contact_phases[phase_index_] == 0) {
     contact_feet_states_.left_front_in_swing = true;
   } else {
     contact_feet_states_.left_front_in_swing = false;
   }
 
-  if (smnc_.lb_contact_phases[phase_index_] == 0) {
+  if (smnc.lb_contact_phases[phase_index_] == 0) {
     contact_feet_states_.left_back_in_swing = true;
   } else {
     contact_feet_states_.left_back_in_swing = false;
   }
+}
+
+
+float SpotMicroWalkState::computeCommandRatio(const SpotMicroNodeConfig& smnc,
+                                              const Command& cmd) const {
+  float x_ratio = std::fabs(cmd.getXSpeedCmd()) /
+                  std::max(smnc.max_fwd_velocity, 0.001f);
+  float y_ratio = std::fabs(cmd.getYSpeedCmd()) /
+                  std::max(smnc.max_side_velocity, 0.001f);
+  float yaw_ratio = std::fabs(cmd.getYawRateCmd()) /
+                    std::max(smnc.max_yaw_rate, 0.001f);
+
+  return std::clamp(std::max({x_ratio, y_ratio, yaw_ratio}), 0.0f, 1.0f);
+}
+
+
+SpotMicroNodeConfig SpotMicroWalkState::buildAdaptiveGaitConfig(
+    const SpotMicroNodeConfig& smnc,
+    const Command& cmd) const {
+  SpotMicroNodeConfig gait_smnc = smnc;
+  float cmd_ratio = computeCommandRatio(smnc, cmd);
+  float cadence_factor = 1.0f +
+                         (smnc.max_cadence_factor - 1.0f) *
+                             std::sqrt(cmd_ratio);
+
+  cadence_factor = std::max(cadence_factor, 1.0f);
+
+  gait_smnc.swing_ticks =
+      std::max(1, static_cast<int>(std::round(smnc.swing_ticks / cadence_factor)));
+  gait_smnc.overlap_ticks =
+      std::max(0, static_cast<int>(std::round(smnc.overlap_ticks / cadence_factor)));
+  gait_smnc.swing_time = gait_smnc.swing_ticks * smnc.dt;
+  gait_smnc.overlap_time = gait_smnc.overlap_ticks * smnc.dt;
+
+  if (gait_smnc.num_phases == 8) {
+    gait_smnc.stance_ticks = 7 * gait_smnc.swing_ticks;
+    gait_smnc.phase_ticks = std::vector<int>{
+        gait_smnc.swing_ticks, gait_smnc.swing_ticks, gait_smnc.swing_ticks, gait_smnc.swing_ticks,
+        gait_smnc.swing_ticks, gait_smnc.swing_ticks, gait_smnc.swing_ticks, gait_smnc.swing_ticks};
+    gait_smnc.phase_length = gait_smnc.num_phases * gait_smnc.swing_ticks;
+  } else {
+    gait_smnc.stance_ticks = 2 * gait_smnc.overlap_ticks + gait_smnc.swing_ticks;
+    gait_smnc.phase_ticks = std::vector<int>{
+        gait_smnc.overlap_ticks, gait_smnc.swing_ticks,
+        gait_smnc.overlap_ticks, gait_smnc.swing_ticks};
+    gait_smnc.phase_length = 2 * gait_smnc.swing_ticks + 2 * gait_smnc.overlap_ticks;
+  }
+
+  return gait_smnc;
 }
 
 
