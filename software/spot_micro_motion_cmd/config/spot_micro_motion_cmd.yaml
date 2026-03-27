@@ -48,6 +48,7 @@ transit_angle_rl: 0.35 # Body motion angular rate limit in rad/s for transition 
 max_fwd_velocity: 0.4
 max_side_velocity: 0.4
 max_yaw_rate: 0.35
+max_cadence_factor: 2.5 # Increase cadence with speed command so stride does not grow unchecked.
 
 # Gait parameters
 z_clearance: 0.050 # Max height of foot during swing phase. Increase to have feet go
@@ -114,4 +115,5 @@ plot_mode: false # Publishes data for the python plotting node to work
 
 # Standalone mode
 standalone_mode: false # Enables node to run without i2cpwnboard
+
 

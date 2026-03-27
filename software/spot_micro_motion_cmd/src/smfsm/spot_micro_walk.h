@@ -46,7 +46,17 @@ class SpotMicroWalkState : public SpotMicroState {
   // robot gait should be in. Updates the subphase ticks, the ticks since the
   // start of the current phase. And updates the contact feet states
   // representing which feet are in swing and stance phases
-  void updatePhaseData();
+  void updatePhaseData(const SpotMicroNodeConfig& smnc);
+
+  // Returns a copy of the gait timing parameters with cadence increased as
+  // commanded speed increases. This keeps stride growth in check at higher
+  // velocity commands.
+  SpotMicroNodeConfig buildAdaptiveGaitConfig(const SpotMicroNodeConfig& smnc,
+                                              const Command& cmd) const;
+
+  // Returns the normalized command magnitude used to scale gait cadence.
+  float computeCommandRatio(const SpotMicroNodeConfig& smnc,
+                            const Command& cmd) const;
 
 
   // Steps the gait controller one timestep, sets the feet command state, and
@@ -77,3 +87,4 @@ class SpotMicroWalkState : public SpotMicroState {
 };
 
   
+
