@@ -300,6 +300,7 @@ smk::Point SpotMicroWalkState::swingLegController(
   float swing_height;
   float alpha = smnc.alpha;
   float beta = smnc.beta;
+  float stride_gain = smnc.stride_gain;
   // Keep touchdown planning based on the baseline gait timing. If we reuse the
   // cadence-scaled stance_ticks here, increasing cadence also collapses stride
   // length and the robot ends up stepping in place.
@@ -322,9 +323,9 @@ smk::Point SpotMicroWalkState::swingLegController(
   Vector3f new_foot_pos_vec;
 
   // Create delta position vector for touchdown location
-  Vector3f delta_pos(alpha * stance_ticks * dt * cmd.getXSpeedCmd(),
+  Vector3f delta_pos(stride_gain * alpha * stance_ticks * dt * cmd.getXSpeedCmd(),
                      0.0f, 
-                     alpha * stance_ticks * dt * cmd.getYSpeedCmd());
+                     stride_gain * alpha * stance_ticks * dt * cmd.getYSpeedCmd());
 
   // Create rotation matrix for yaw rate
   float theta = beta * stance_ticks * dt * -cmd.getYawRateCmd();

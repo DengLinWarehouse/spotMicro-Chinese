@@ -40,6 +40,7 @@ struct SpotMicroNodeConfig {
   float max_side_velocity;
   float max_yaw_rate;
   float max_cadence_factor;
+  float stride_gain;
   float z_clearance;
   float alpha;
   float beta;

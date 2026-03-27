@@ -357,6 +357,7 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("max_side_velocity", smnc_.max_side_velocity);
   pnh_.getParam("max_yaw_rate", smnc_.max_yaw_rate);
   pnh_.param("max_cadence_factor", smnc_.max_cadence_factor, 2.5f);
+  pnh_.param("stride_gain", smnc_.stride_gain, 1.8f);
   pnh_.getParam("z_clearance", smnc_.z_clearance);
   pnh_.getParam("alpha", smnc_.alpha);
   pnh_.getParam("beta", smnc_.beta);
