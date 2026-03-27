@@ -299,7 +299,10 @@ smk::Point SpotMicroWalkState::swingLegController(
   float swing_height;
   float alpha = smnc.alpha;
   float beta = smnc.beta;
-  float stance_ticks = smnc.stance_ticks;
+  // Keep touchdown planning based on the baseline gait timing. If we reuse the
+  // cadence-scaled stance_ticks here, increasing cadence also collapses stride
+  // length and the robot ends up stepping in place.
+  float stance_ticks = smnc_.stance_ticks;
   Vector3f default_stance_foot_pos_vec(default_stance_foot_pos.x,
                                        default_stance_foot_pos.y,
                                        default_stance_foot_pos.z);
