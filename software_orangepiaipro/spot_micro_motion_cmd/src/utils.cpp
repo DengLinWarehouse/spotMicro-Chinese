@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 #include <eigen3/Eigen/Geometry>
 #include "tf2/LinearMath/Quaternion.h"
-#include "tf2_eigen/tf2_eigen.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 using namespace Eigen;
@@ -25,11 +24,21 @@ TransformStamped eigAndFramesToTrans(
     const Affine3d& transform, 
     std::string parent_frame_id, std::string child_frame_id) {
 
-  TransformStamped transform_stamped = tf2::eigenToTransform(transform);
+  TransformStamped transform_stamped;
 
   transform_stamped.header.stamp = ros::Time::now();
   transform_stamped.header.frame_id = parent_frame_id;
   transform_stamped.child_frame_id = child_frame_id;
+
+  transform_stamped.transform.translation.x = transform.translation().x();
+  transform_stamped.transform.translation.y = transform.translation().y();
+  transform_stamped.transform.translation.z = transform.translation().z();
+
+  Eigen::Quaterniond q(transform.rotation());
+  transform_stamped.transform.rotation.x = q.x();
+  transform_stamped.transform.rotation.y = q.y();
+  transform_stamped.transform.rotation.z = q.z();
+  transform_stamped.transform.rotation.w = q.w();
 
   return transform_stamped;
 }

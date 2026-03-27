@@ -8,7 +8,6 @@
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/Twist.h"
 #include "tf2/LinearMath/Quaternion.h"
-#include "tf2_eigen/tf2_eigen.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 #include "spot_micro_motion_cmd.h"

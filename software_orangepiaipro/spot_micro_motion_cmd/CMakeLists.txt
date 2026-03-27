@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(spot_micro_motion_cmd)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -137,6 +136,10 @@ add_library(smfsm
 			src/smfsm/spot_micro_walk.cpp
 )
 
+target_compile_features(smfsm PUBLIC cxx_std_17)
+set_property(TARGET smfsm PROPERTY CXX_STANDARD 17)
+set_property(TARGET smfsm PROPERTY CXX_STANDARD_REQUIRED ON)
+
 target_link_libraries(smfsm
 		spot_micro_kinematics
 )
@@ -150,6 +153,10 @@ target_link_libraries(smfsm
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/spot_micro_motion_cmd.cpp src/spot_micro_motion_cmd_node.cpp src/utils.cpp)
+
+target_compile_features(${PROJECT_NAME}_node PUBLIC cxx_std_17)
+set_property(TARGET ${PROJECT_NAME}_node PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${PROJECT_NAME}_node PROPERTY CXX_STANDARD_REQUIRED ON)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
