@@ -95,7 +95,10 @@ source ~/Desktop/SpotMicro/spotmicro_ws/devel/setup.bash
 
 ## 中文指南索引
 - `ORANGEPI_AI_PRO_NOETIC_DEPLOYMENT.md`：基于 2026-03 实际落地过程整理的香橙派 AI Pro + Ubuntu 22.04 + ROS1 Noetic + SpotMicro 部署总结，适合作为后续批量复刻的标准参考。
+- `navigation_hector_amcl_astar_dwa.md`：围绕 RPLidar 室内导航链路给出的专项设计文档，覆盖 Hector 建图、独立 odom、AMCL、A*、局部跟踪、速度安全门、风险分析和实验计划，适合作为导航功能落地基线。
+- `tf_chain_spotmicro_navigation.md`：围绕 SpotMicro 导航 TF 链给出的专项说明文档，解释 `map/odom/base_footprint/base_link/lidar_link` 的含义，并结合现有代码说明“当前谁在发 TF、后续应该谁来发”。
 - `../orangepi_ros_backup_template/README.md`：香橙派 ROS 远程备份模板入口，包含源码导出脚本、依赖清单采集脚本、恢复说明和补丁目录规范，适合把 `ros_noetic_ws` / `spotmicro_ws` 备份到远程仓库。
+- `大模型与训练模型接入路线图.md`：围绕现有 SpotMicro 仓库的模型接入边界、推荐架构、阶段路线图、安全约束和实施顺序的专项设计文档，适合作为后续智能化改造的主参考。
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。
 - `LEARNING_GUIDE.md`：学习路线与背景知识。
 - `实验操作手册.md`：一步一步跑通实验程序的详细 runbook；已补充 Orange Pi Ubuntu 22.04 与双工作区避坑说明。
