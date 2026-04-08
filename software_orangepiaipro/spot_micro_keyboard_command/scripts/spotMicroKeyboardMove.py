@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """
 Class for sending keyboard commands to spot micro walk node, control velocity, yaw rate, and walk event 
