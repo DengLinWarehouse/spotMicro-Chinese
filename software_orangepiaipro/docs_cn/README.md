@@ -88,13 +88,16 @@ Orange Pi Ubuntu 22.04 推荐遵循以下规则：
 | `spot_micro_keyboard_command` / `servo_move_keyboard` | 键盘遥控器，发布速度/事件或单个舵机命令 |
 | `lcd_monitor` | ROS 状态在 I2C LCD 上显示 |
 | `spot_micro_plot` | matplotlib 可视化 stick figure |
+| `spot_micro_navigation` | 雷达建图、AMCL、A*/Dijkstra、DWA 与导航安全门集成 |
 
 其余子目录为 kinematics 子库、LCD 驱动、舵机标定文档等。
 
 ## 中文指南索引
 - `ORANGEPI_AI_PRO_NOETIC_DEPLOYMENT.md`：基于 2026-03 实际落地过程整理的香橙派 AI Pro + Ubuntu 22.04 + ROS1 Noetic + SpotMicro 部署总结，适合作为后续批量复刻的标准参考。
-- `navigation_hector_amcl_astar_dwa.md`：围绕 RPLidar 室内导航链路给出的专项设计文档，覆盖 Hector 建图、独立 odom、AMCL、A*、局部跟踪、速度安全门、风险分析和实验计划，适合作为导航功能落地基线。
+- `SpotMicro 导航方案设计.md`：围绕 RPLidar 室内导航链路给出的专项设计文档，覆盖 Hector 建图、独立 odom、AMCL、A*、局部跟踪、速度安全门、风险分析和实验计划，适合作为导航功能落地基线。
 - `tf_chain_spotmicro_navigation.md`：围绕 SpotMicro 导航 TF 链给出的专项说明文档，解释 `map/odom/base_footprint/base_link/lidar_link` 的含义，并结合现有代码说明“当前谁在发 TF、后续应该谁来发”。
+- `navigation_stack_runbook.md`：围绕新加入的 `spot_micro_navigation` 包给出的运行手册，覆盖雷达调试、Hector/Gmapping 建图、AMCL 定位、A*/Dijkstra 全局规划、DWA 与速度安全门的启动方式。
+- `OrangePi_Jammy_Noetic_导航编译排障.md`：针对 Orange Pi Ubuntu 22.04 + ROS1 Noetic 源码工作区整理的导航编译排障手册，覆盖 `cv_bridge` / `laser_geometry` / `rviz` 缺失时的最小可落地修复路径。
 - `../orangepi_ros_backup_template/README.md`：香橙派 ROS 远程备份模板入口，包含源码导出脚本、依赖清单采集脚本、恢复说明和补丁目录规范，适合把 `ros_noetic_ws` / `spotmicro_ws` 备份到远程仓库。
 - `大模型与训练模型接入路线图.md`：围绕现有 SpotMicro 仓库的模型接入边界、推荐架构、阶段路线图、安全约束和实施顺序的专项设计文档，适合作为后续智能化改造的主参考。
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。

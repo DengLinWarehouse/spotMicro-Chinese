@@ -14,6 +14,7 @@ PACKAGES=(
   spot_micro_keyboard_command
   spot_micro_launch
   spot_micro_motion_cmd
+  spot_micro_navigation
   spot_micro_plot
   spot_micro_rviz
 )
