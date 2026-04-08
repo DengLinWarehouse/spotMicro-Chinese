@@ -9,6 +9,19 @@
 #include "spot_micro_motion_cmd.h"
 #include "rate_limited_first_order_filter.h"
 
+namespace {
+
+float computeStridePlanningTicks(const SpotMicroNodeConfig& smnc) {
+  float active_ticks = std::max(1, smnc.stance_ticks);
+  float reference_ticks = std::max(1, smnc.stride_reference_stance_ticks);
+
+  // Blend the active gait timing with a fixed reference gait so switching
+  // between 8-phase and 4-phase does not collapse the fore-aft touchdown plan.
+  return std::sqrt(active_ticks * reference_ticks);
+}
+
+}  // namespace
+
 SpotMicroWalkState::SpotMicroWalkState() {
   contact_feet_states_.right_back_in_swing = false;
   contact_feet_states_.right_front_in_swing = false;
@@ -301,10 +314,7 @@ smk::Point SpotMicroWalkState::swingLegController(
   float alpha = smnc.alpha;
   float beta = smnc.beta;
   float stride_gain = smnc.stride_gain;
-  // Keep touchdown planning based on the baseline gait timing. If we reuse the
-  // cadence-scaled stance_ticks here, increasing cadence also collapses stride
-  // length and the robot ends up stepping in place.
-  float stance_ticks = smnc_.stance_ticks;
+  float stride_ticks = computeStridePlanningTicks(smnc);
   Vector3f default_stance_foot_pos_vec(default_stance_foot_pos.x,
                                        default_stance_foot_pos.y,
                                        default_stance_foot_pos.z);
@@ -323,12 +333,12 @@ smk::Point SpotMicroWalkState::swingLegController(
   Vector3f new_foot_pos_vec;
 
   // Create delta position vector for touchdown location
-  Vector3f delta_pos(stride_gain * alpha * stance_ticks * dt * cmd.getXSpeedCmd(),
+  Vector3f delta_pos(stride_gain * alpha * stride_ticks * dt * cmd.getXSpeedCmd(),
                      0.0f, 
-                     stride_gain * alpha * stance_ticks * dt * cmd.getYSpeedCmd());
+                     stride_gain * alpha * stride_ticks * dt * cmd.getYSpeedCmd());
 
   // Create rotation matrix for yaw rate
-  float theta = beta * stance_ticks * dt * -cmd.getYawRateCmd();
+  float theta = beta * stride_ticks * dt * -cmd.getYawRateCmd();
   Matrix3f rot_delta;
   rot_delta = AngleAxisf(theta, Vector3f::UnitY());
 

@@ -25,6 +25,18 @@ using namespace Eigen;
 using namespace geometry_msgs;
 typedef std::vector<std::pair<std::string,std::string>> VectorStringPairs;
 
+namespace {
+
+int computeStanceTicks(int num_phases, int swing_ticks, int overlap_ticks) {
+  if (num_phases == 8) {
+    return 7 * swing_ticks;
+  }
+
+  return 2 * overlap_ticks + swing_ticks;
+}
+
+}  // namespace
+
 // Constructor
 SpotMicroMotionCmd::SpotMicroMotionCmd(ros::NodeHandle &nh, ros::NodeHandle &pnh) {
 
@@ -359,6 +371,9 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("max_yaw_rate", smnc_.max_yaw_rate);
   pnh_.param("max_cadence_factor", smnc_.max_cadence_factor, 2.5f);
   pnh_.param("stride_gain", smnc_.stride_gain, 1.8f);
+  pnh_.param("stride_reference_num_phases", smnc_.stride_reference_num_phases, 8);
+  pnh_.param("stride_reference_overlap_time", smnc_.stride_reference_overlap_time, 0.0f);
+  pnh_.param("stride_reference_swing_time", smnc_.stride_reference_swing_time, 0.36f);
   pnh_.getParam("z_clearance", smnc_.z_clearance);
   pnh_.getParam("alpha", smnc_.alpha);
   pnh_.getParam("beta", smnc_.beta);
@@ -383,10 +398,18 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   // Derived parameters, round result of division of floats
   smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
   smnc_.swing_ticks = round(smnc_.swing_time / smnc_.dt);
+  int stride_ref_overlap_ticks = round(smnc_.stride_reference_overlap_time / smnc_.dt);
+  int stride_ref_swing_ticks = round(smnc_.stride_reference_swing_time / smnc_.dt);
+  smnc_.stride_reference_stance_ticks =
+      computeStanceTicks(smnc_.stride_reference_num_phases,
+                         stride_ref_swing_ticks,
+                         stride_ref_overlap_ticks);
   
   // 8 Phase gait specific
   if (smnc_.num_phases == 8) {    
-    smnc_.stance_ticks = 7 * smnc_.swing_ticks;
+    smnc_.stance_ticks = computeStanceTicks(smnc_.num_phases,
+                                            smnc_.swing_ticks,
+                                            smnc_.overlap_ticks);
     smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
     smnc_.phase_ticks = std::vector<int>
         {smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks, smnc_.swing_ticks,
@@ -395,7 +418,9 @@ void SpotMicroMotionCmd::readInConfigParameters() {
 
   } else { 
     // 4 phase gait specific
-    smnc_.stance_ticks = 2 * smnc_.overlap_ticks + smnc_.swing_ticks;
+    smnc_.stance_ticks = computeStanceTicks(smnc_.num_phases,
+                                            smnc_.swing_ticks,
+                                            smnc_.overlap_ticks);
     smnc_.overlap_ticks = round(smnc_.overlap_time / smnc_.dt);
     smnc_.phase_ticks = std::vector<int>
         {smnc_.overlap_ticks, smnc_.swing_ticks, smnc_.overlap_ticks, smnc_.swing_ticks};

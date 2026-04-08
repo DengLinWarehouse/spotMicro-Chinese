@@ -22,6 +22,7 @@
 - **ROS base 工作区**：`~/Desktop/SpotMicro/ros_noetic_ws`
 - **SpotMicro overlay 工作区**：`~/Desktop/SpotMicro/spotmicro_ws`
 - **源码/文档仓库**：`~/Desktop/SpotMicro/spotMicro-Chinese/software_orangepiaipro`
+- **连接方式**：`spotmicro_ws/src` 内的 SpotMicro 包统一软链接到 `software_orangepiaipro`
 
 ---
 
@@ -460,8 +461,8 @@ sudo i2cdetect -y 7
 ### 阶段 B：搭 SpotMicro overlay
 1. 创建 `spotmicro_ws`
 2. `source ~/Desktop/SpotMicro/ros_noetic_ws/devel/setup.bash`
-3. 复制首批 SpotMicro 包
-4. 用 `extensions/packages` 覆盖 Python3 友好脚本
+3. 运行 `software_orangepiaipro/scripts/link_spotmicro_workspace.sh` 建立软链接
+4. 只在 `software_orangepiaipro` 中维护源码与 YAML，避免 overlay 漂移
 5. 暂时屏蔽 `spot_micro_launch`
 6. 编译 overlay
 
@@ -561,4 +562,3 @@ unset PYTHONHOME
 7. Orange Pi 的 I2C 总线编号和 launch 参数名一定要现场验证
 
 如果后续在别的香橙派上继续部署，优先复用本文的目录结构、编译参数、排错顺序和工作区边界，不要重新走“单工作区混编”的老路。
-

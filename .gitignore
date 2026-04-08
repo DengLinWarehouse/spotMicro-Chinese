@@ -150,3 +150,4 @@ extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/build/
 extensions/packages/spot_micro_motion_cmd/libs/spot_micro_kinematics_cpp/devel/
 
 dimos/
+temp/

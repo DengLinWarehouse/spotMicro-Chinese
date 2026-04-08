@@ -16,10 +16,15 @@
 
 ```bash
 mkdir -p ~/Desktop/SpotMicro/spotmicro_ws/src
+bash ~/Desktop/SpotMicro/spotMicro-Chinese/software_orangepiaipro/scripts/link_spotmicro_workspace.sh ~/Desktop/SpotMicro/spotmicro_ws
 cd ~/Desktop/SpotMicro/spotmicro_ws
 source ~/Desktop/SpotMicro/ros_noetic_ws/devel/setup.bash
 catkin_make
 ```
+
+> 对 Orange Pi Ubuntu 22.04，推荐让 `spotmicro_ws/src` 中的每个 SpotMicro 包都通过软链接指向 `software_orangepiaipro/`。这样 `software_orangepiaipro` 成为唯一源码真值，修改 YAML 或源码后不会再出现“仓库内容和运行工作区内容不一致”的问题。
+
+> **步态切换提示**：`spot_micro_motion_cmd.yaml` 现已新增 `stride_reference_*` 参数，用固定参考步态来归一化理论步幅。日常在 8 相/4 相之间切换时，通常只需要改 `num_phases`、接触相位数组、`overlap_time`、`swing_time`，不必再跟着手工重算一次步幅参数。
 
 如果以后要开新终端，推荐在 `~/.bashrc` 中同时保留：
 
@@ -30,9 +35,9 @@ source ~/Desktop/SpotMicro/spotmicro_ws/devel/setup.bash
 
 > 对于 Orange Pi Ubuntu 22.04，**不要**直接在 `software_orangepiaipro` 根目录执行 `catkin_make` 并期待它充当 ROS base + 机器人包的混合工作区。这样最容易把基础环境和业务包搅在一起，后续升级和排错都会变难。
 
-## 推荐迁移顺序
+## 推荐链接顺序
 
-先迁最核心、最容易验证的包到 `spotmicro_ws/src`：
+`link_spotmicro_workspace.sh` 会一次性为 `spotmicro_ws/src` 建立核心包的软链接。若你需要手工核对，优先确认这些包已经链接成功：
 
 | 优先级 | 包 | 说明 |
 | --- | --- | --- |
@@ -65,20 +70,13 @@ source ~/Desktop/SpotMicro/spotmicro_ws/devel/setup.bash
 
 ## root 包与 extensions 包如何选
 
-迁移时不要盲目只复制根目录同名包。原则如下：
+Orange Pi Ubuntu 22.04 推荐遵循以下规则：
 
-- 根目录包：保留上游/历史结构，便于对照
-- `extensions/packages`：优先放置已经做过 Python 3、Noetic 或本地化修订的版本
+- `software_orangepiaipro/`：唯一源码真值与文档入口
+- `spotmicro_ws/src`：仅保留指向这些包的软链接，不再手工复制目录
+- 新拉代码、恢复工作区或怀疑链接失效时：重新执行 `scripts/link_spotmicro_workspace.sh`
 
-尤其在 Orange Pi Ubuntu 22.04 上，优先检查这些扩展包是否比根目录版本更新：
-
-- `extensions/packages/spot_micro_keyboard_command`
-- `extensions/packages/servo_move_keyboard`
-- `extensions/packages/spot_micro_plot`
-- `extensions/packages/spot_micro_motion_cmd`
-- `extensions/packages/ros-i2cpwmboard`
-
-> 简单说：这里是“资料总库”，`spotmicro_ws/src` 才是“实际运行区”。
+> 简单说：这里是“资料总库”，`spotmicro_ws/src` 是“链接到资料总库的实际运行区”。
 
 ## 仓库结构
 

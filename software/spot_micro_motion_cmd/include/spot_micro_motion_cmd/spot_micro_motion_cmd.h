@@ -41,6 +41,10 @@ struct SpotMicroNodeConfig {
   float max_yaw_rate;
   float max_cadence_factor;
   float stride_gain;
+  int stride_reference_num_phases;
+  float stride_reference_overlap_time;
+  float stride_reference_swing_time;
+  int stride_reference_stance_ticks;
   float z_clearance;
   float alpha;
   float beta;

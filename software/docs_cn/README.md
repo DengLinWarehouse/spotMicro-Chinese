@@ -22,6 +22,7 @@ catkin build    # 或 catkin_make
 其余子目录为 kinematics 子库、LCD 驱动、舵机标定文档等。
 
 ## 中文指南索引
+- `机器狗组装与舵机初始值设置.md`：装配前如何给 12 个舵机设置预装角度，解决“大腿/小腿总是装在危险区”的问题，建议先读。
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。
 - `SOFTWARE_ASSESSMENT.md`：软件可靠性评估与待办。
 - `LEARNING_GUIDE.md`：学习路线与背景知识。

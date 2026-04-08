@@ -48,6 +48,9 @@ max_side_velocity: 0.4
 max_yaw_rate: 0.35
 max_cadence_factor: 2.5 # Increase cadence with speed command so stride does not grow unchecked.
 stride_gain: 1.8 # Separate fore-aft stride scaling from cadence scaling.
+stride_reference_num_phases: 8 # Fixed reference gait used to normalize theoretical stride across gait changes.
+stride_reference_overlap_time: 0.0
+stride_reference_swing_time: 0.36
 
 # Gait parameters
 z_clearance: 0.050 # Max height of foot during swing phase. Increase to have feet go
