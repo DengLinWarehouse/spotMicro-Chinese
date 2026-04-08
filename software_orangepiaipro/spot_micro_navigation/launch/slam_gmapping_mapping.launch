@@ -5,9 +5,8 @@
   <arg name="map_frame" default="map" />
   <arg name="config_file" default="$(find spot_micro_navigation)/config/gmapping.yaml" />
 
-  <rosparam command="load" file="$(arg config_file)" />
-
   <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+    <rosparam command="load" file="$(arg config_file)" />
     <param name="base_frame" value="$(arg base_frame)" />
     <param name="odom_frame" value="$(arg odom_frame)" />
     <param name="map_frame" value="$(arg map_frame)" />

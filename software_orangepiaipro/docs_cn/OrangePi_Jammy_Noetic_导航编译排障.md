@@ -348,6 +348,84 @@ ls -l ~/Desktop/SpotMicro/spotmicro_ws/src/spot_micro_navigation
 
 这种情况下，即便其它包编过了，也还没有真正开始编译你新增的导航集成部分。
 
+### 6.6 如果 `rplidar_ros` 报 `shared_mutex` / `shared_lock` 找不到
+
+典型报错长这样：
+
+```text
+/usr/include/log4cxx/boost-std-configuration.h: error: shared_mutex in namespace std does not name a type
+note: std::shared_mutex is only available from C++17 onwards
+```
+
+这不是 RPLidar 硬件坏了，也不是 ROS topic 配错了，而是：
+
+1. Ubuntu 22.04 自带的 `log4cxx` 头文件已经依赖 C++17 特性
+2. `rplidar_ros` 当前仍按旧默认 C++ 标准在编译
+3. 结果一进 `ros/ros.h` -> `rosconsole` -> `log4cxx`，就被卡住
+
+推荐处理方式是：**直接给 `rplidar_ros` 显式开启 C++17。**
+
+可在 Orange Pi 上热修：
+
+```bash
+grep -n "project(rplidar_ros)" ~/Desktop/SpotMicro/spotmicro_ws/src/rplidar_ros/CMakeLists.txt
+sed -i '/project(rplidar_ros)/a add_compile_options(-std=c++17)' ~/Desktop/SpotMicro/spotmicro_ws/src/rplidar_ros/CMakeLists.txt
+grep -n "add_compile_options" ~/Desktop/SpotMicro/spotmicro_ws/src/rplidar_ros/CMakeLists.txt
+```
+
+如果该包后续仍出现标准相关问题，可改为更明确的写法：
+
+```cmake
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+```
+
+但对当前任务，先加：
+
+```cmake
+add_compile_options(-std=c++17)
+```
+
+通常就够了。
+
+### 6.7 如果 Hector 已经能启动，但日志里的阈值仍是默认值
+
+典型现象：
+
+- `rostopic list` 里已经有 `/map`、`/slam_out_pose`
+- 但 `roslaunch spot_micro_navigation slam_hector_mapping.launch` 的日志仍显示：
+  - `p_map_update_distance_threshold_: 0.400000`
+  - `p_map_update_angle_threshold_: 0.900000`
+- 与 `hector_mapping.yaml` 中期望的：
+  - `map_update_distance_thresh: 0.25`
+  - `map_update_angle_thresh: 0.05`
+  不一致
+
+这通常说明：
+
+1. YAML 被加载到了全局命名空间
+2. 但 `hector_mapping` 节点读的是自己的私有参数
+3. 因此节点继续使用默认值，而不是你配置文件里的值
+
+正确做法是把：
+
+```xml
+<rosparam command="load" file="$(arg config_file)" />
+```
+
+放到 `<node ...>` 标签内部。
+
+也就是说，`slam_hector_mapping.launch` 应改成：
+
+```xml
+<node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
+  <rosparam command="load" file="$(arg config_file)" />
+  ...
+</node>
+```
+
+同理，`slam_gmapping_mapping.launch` 也建议做同样修正，避免后面 `gmapping.yaml` 也只加载到全局命名空间而未进入节点私有参数。
+
 ## 7. 风险分析
 
 | 风险项 | 严重度 | 发生概率 | 触发条件 | 缓解措施 |
@@ -356,6 +434,7 @@ ls -l ~/Desktop/SpotMicro/spotmicro_ws/src/spot_micro_navigation
 | 跳过 `spot_micro_joy` 后误以为控制链断掉 | 低 | 中 | 当前没有物理手柄输入 | 明确键盘控制与导航链不依赖它 |
 | `laser_geometry` 放在 overlay 导致后期基础环境不统一 | 中 | 中 | 后续你开始维护多个机器人工作区 | 等主链跑通后，再决定是否上移到 `ros_noetic_ws` |
 | `rviz` 不在本机，调试可视化不方便 | 中 | 中 | 想在 Orange Pi 本机直接点 `2D Nav Goal` | 可改为远端 PC 跑 RViz，或后续再补 `rviz` |
+| `rplidar_ros` 需要 C++17，后续其它旧包可能也触发同类编译错误 | 中 | 中 | Jammy 系统头/ROS console 链路拉高了编译标准要求 | 发现一个修一个，优先只改报错包，避免全局大改 |
 | 继续沿用伪 `odom`，导致 AMCL/DWA 稳定性差 | 高 | 高 | 建图跑通后直接做闭环导航 | 下一阶段尽快补真实 odom 源 |
 
 ---

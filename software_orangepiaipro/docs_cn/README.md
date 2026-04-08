@@ -98,6 +98,7 @@ Orange Pi Ubuntu 22.04 推荐遵循以下规则：
 - `tf_chain_spotmicro_navigation.md`：围绕 SpotMicro 导航 TF 链给出的专项说明文档，解释 `map/odom/base_footprint/base_link/lidar_link` 的含义，并结合现有代码说明“当前谁在发 TF、后续应该谁来发”。
 - `navigation_stack_runbook.md`：围绕新加入的 `spot_micro_navigation` 包给出的运行手册，覆盖雷达调试、Hector/Gmapping 建图、AMCL 定位、A*/Dijkstra 全局规划、DWA 与速度安全门的启动方式。
 - `OrangePi_Jammy_Noetic_导航编译排障.md`：针对 Orange Pi Ubuntu 22.04 + ROS1 Noetic 源码工作区整理的导航编译排障手册，覆盖 `cv_bridge` / `laser_geometry` / `rviz` 缺失时的最小可落地修复路径。
+- `RPLidar_Hector_实操问题复盘.md`：总结本次 Orange Pi 上雷达环境安装、源码编译、RPLidar 调试、TF 校验、Hector 建图过程中遇到的真实问题、根因、修复动作与后续建议，适合作为现场排障复盘文档。
 - `../orangepi_ros_backup_template/README.md`：香橙派 ROS 远程备份模板入口，包含源码导出脚本、依赖清单采集脚本、恢复说明和补丁目录规范，适合把 `ros_noetic_ws` / `spotmicro_ws` 备份到远程仓库。
 - `大模型与训练模型接入路线图.md`：围绕现有 SpotMicro 仓库的模型接入边界、推荐架构、阶段路线图、安全约束和实施顺序的专项设计文档，适合作为后续智能化改造的主参考。
 - `servo_calibration.md`：舵机校准全过程与参考表格说明。
