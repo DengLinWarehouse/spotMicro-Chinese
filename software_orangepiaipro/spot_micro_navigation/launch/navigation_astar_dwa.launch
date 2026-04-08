@@ -1,0 +1,50 @@
+<launch>
+  <arg name="map_yaml" />
+  <arg name="scan_topic" default="/scan" />
+  <arg name="cmd_vel_raw_topic" default="/cmd_vel_nav_raw" />
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="base_frame" default="base_footprint" />
+  <arg name="odom_frame" default="odom" />
+  <arg name="global_frame" default="map" />
+  <arg name="use_dijkstra" default="false" />
+  <arg name="run_mode_manager" default="true" />
+
+  <include file="$(find spot_micro_navigation)/launch/localization_amcl.launch">
+    <arg name="map_yaml" value="$(arg map_yaml)" />
+    <arg name="scan_topic" value="$(arg scan_topic)" />
+    <arg name="base_frame" value="$(arg base_frame)" />
+    <arg name="odom_frame" value="$(arg odom_frame)" />
+    <arg name="global_frame" value="$(arg global_frame)" />
+  </include>
+
+  <node if="$(arg run_mode_manager)" pkg="spot_micro_navigation" type="nav_mode_manager.py" name="nav_mode_manager" output="screen">
+    <param name="stand_topic" value="/stand_cmd" />
+    <param name="walk_topic" value="/walk_cmd" />
+    <param name="idle_topic" value="/idle_cmd" />
+  </node>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen" clear_params="true">
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/move_base.yaml" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/costmap_common.yaml" ns="global_costmap" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/costmap_common.yaml" ns="local_costmap" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/global_costmap.yaml" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/local_costmap.yaml" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/global_planner.yaml" />
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/dwa_local_planner.yaml" />
+
+    <param name="GlobalPlanner/use_dijkstra" value="$(arg use_dijkstra)" />
+    <param name="global_costmap/laser_scan_sensor/topic" value="$(arg scan_topic)" />
+    <param name="local_costmap/laser_scan_sensor/topic" value="$(arg scan_topic)" />
+    <remap from="cmd_vel" to="$(arg cmd_vel_raw_topic)" />
+  </node>
+
+  <node pkg="spot_micro_navigation" type="cmd_vel_safety_gate.py" name="cmd_vel_safety_gate" output="screen">
+    <rosparam command="load" file="$(find spot_micro_navigation)/config/safety_gate.yaml" />
+    <param name="input_topic" value="$(arg cmd_vel_raw_topic)" />
+    <param name="output_topic" value="$(arg cmd_vel_topic)" />
+    <param name="scan_topic" value="$(arg scan_topic)" />
+  </node>
+</launch>

@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   hector_map_server
   hector_mapping
   hector_trajectory_server
-  rviz
   tf
   tf2
   topic_tools
@@ -111,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES spot_micro_launch
-#  CATKIN_DEPENDS hector_geotiff hector_geotiff_plugins hector_map_server hector_mapping hector_trajectory_server rviz tf tf2 topic_tools
+#  CATKIN_DEPENDS hector_geotiff hector_geotiff_plugins hector_map_server hector_mapping hector_trajectory_server tf tf2 topic_tools
 #  DEPENDS system_lib
 )
 
