@@ -68,7 +68,7 @@ sudo apt install ros-noetic-robot-localization
 
 请优先查看：
 
-- `software_orangepiaipro/docs_cn/OrangePi_Jammy_Noetic_导航编译排障.md`
+- `software_orangepiaipro/docs_cn/01_环境部署/OrangePi_Jammy_Noetic_导航编译排障.md`
 
 说明：
 

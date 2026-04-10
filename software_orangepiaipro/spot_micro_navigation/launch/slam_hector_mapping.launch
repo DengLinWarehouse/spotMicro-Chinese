@@ -4,6 +4,11 @@
   <arg name="odom_frame" default="odom" />
   <arg name="map_frame" default="map" />
   <arg name="config_file" default="$(find spot_micro_navigation)/config/hector_mapping.yaml" />
+  <arg name="autosave_enabled" default="false" />
+  <arg name="autosave_interval_sec" default="120.0" />
+  <arg name="autosave_directory" default="$(env HOME)/Desktop/SpotMicro/maps/autosave" />
+  <arg name="autosave_prefix" default="hector_autosave" />
+  <arg name="autosave_keep_last" default="10" />
 
   <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
     <rosparam command="load" file="$(arg config_file)" />
@@ -11,5 +16,20 @@
     <param name="odom_frame" value="$(arg odom_frame)" />
     <param name="map_frame" value="$(arg map_frame)" />
     <param name="scan_topic" value="$(arg scan_topic)" />
+  </node>
+
+  <node if="$(arg autosave_enabled)"
+        pkg="spot_micro_navigation"
+        type="periodic_map_saver.py"
+        name="periodic_map_saver"
+        output="screen">
+    <param name="map_topic" value="/map" />
+    <param name="map_frame" value="$(arg map_frame)" />
+    <param name="interval_sec" value="$(arg autosave_interval_sec)" />
+    <param name="save_directory" value="$(arg autosave_directory)" />
+    <param name="file_prefix" value="$(arg autosave_prefix)" />
+    <param name="keep_last" value="$(arg autosave_keep_last)" />
+    <param name="save_on_shutdown" value="true" />
+    <param name="write_latest" value="true" />
   </node>
 </launch>

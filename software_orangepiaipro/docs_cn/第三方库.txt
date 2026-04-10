@@ -4,3 +4,20 @@ git clone https://github.com/ros-perception/openslam_gmapping.git
 git clone https://github.com/Slamtec/rplidar_ros.git
 git clone -b noetic-devel https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
 git clone -b noetic-devel https://github.com/ros-perception/laser_geometry.git
+
+# 如果 navigation 目录还不存在，执行：
+git clone -b noetic-devel https://github.com/ros-planning/navigation.git
+
+# navigation 还依赖这几个 ROS 源码仓库；如果不存在，也一并拉取：
+git clone -b ros1 https://github.com/ros-planning/navigation_msgs.git
+git clone -b noetic-devel https://github.com/ros/diagnostics.git
+git clone -b noetic-devel https://github.com/ros/rosbag_migration_rule.git
+git clone -b noetic-devel https://github.com/ros/geometry2.git geometry2_full
+
+git clone -b noetic-devel https://github.com/ros-visualization/rviz.git                                                                                     
+git clone -b noetic-devel https://github.com/ros-visualization/interactive_markers.git                                                                      
+git clone -b noetic-devel https://github.com/ros-perception/image_common.git                                                                                
+git clone -b noetic https://github.com/ros-perception/vision_opencv.git                                                                                     
+git clone -b noetic-devel https://github.com/ros/resource_retriever.git                                                                                     
+git clone -b melodic-devel https://github.com/ros-visualization/python_qt_binding.git 
+git clone -b noetic-devel https://github.com/ros/media_export.git

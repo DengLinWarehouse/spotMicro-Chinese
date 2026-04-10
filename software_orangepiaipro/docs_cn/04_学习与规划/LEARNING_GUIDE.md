@@ -107,7 +107,7 @@ rosdep update
 - 舵机供电独立，GND 与树莓派 GND 共用；切勿直接用 Pi 5 V 输出驱动舵机。
 - I2C LCD（如有）连接至同一总线，默认地址 0x27。
 
-### 4.2 舵机校准流程（节选自 `servo_calibration.md`）
+### 4.2 舵机校准流程（节选自 `../02_标定与运动/servo_calibration.md`）
 1. 启动 PCA9685 驱动：
    ```bash
    roslaunch ros-i2cpwmboard i2cpwm_node.launch
@@ -117,7 +117,7 @@ rosdep update
    rosrun servo_move_keyboard servoMoveKeyboard.py
    ```
 3. 进入 `oneServo` 模式，依次校准 12 个舵机，记录 0°/±90°（Link1 用 ±45°）的 PWM 值。
-4. 将记录填写进《舵机校准参考表格.ods》，再把粗体结果同步至 `spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml`。
+4. 将记录填写进《../02_标定与运动/舵机校准参考表格.ods》，再把粗体结果同步至 `spot_micro_motion_cmd/config/spot_micro_motion_cmd.yaml`。
 5. 舵机安装时保持通电且命令在中心，确保物理中立位一致。
 
 ---
@@ -150,7 +150,7 @@ rosdep update
 | `E: The repository ... noble Release` | 在 24.04 添加了 ROS1 源 | 删除 `/etc/apt/sources.list.d/ros1-latest.list`，改用 20.04 |
 | `rosdep init` 超时 | 无法访问 GitHub | 使用镜像或代理，重新执行 `rosdep update` |
 | `rosdep install --from-paths src` 提示 path 不存在 | 当前目录不是 catkin 根 | `cd ~/spotmicro_ws` 后再执行 |
-| 运行键盘节点时机器人跳动 | 舵机方向/中心未校准 | 重新按 `servo_calibration.md` 调整并更新 YAML |
+| 运行键盘节点时机器人跳动 | 舵机方向/中心未校准 | 重新按 `../02_标定与运动/servo_calibration.md` 调整并更新 YAML |
 | `spot_micro_motion_cmd` 无输出 | 未接收 `/walk_cmd` 或 `/speed_cmd` | 确认键盘节点是否运行、话题是否更新 |
 | LCD 节点崩溃 | 未连接 I2C LCD | 若无 LCD，直接跳过，不要启动 |
 
@@ -176,7 +176,7 @@ rosdep update
 
 ## 附录 A：参考文件
 - `README.md`：简要构建与启动顺序。
-- `servo_calibration.md`：舵机校准图示与步骤。
+- `../02_标定与运动/servo_calibration.md`：舵机校准图示与步骤。
 - `SOFTWARE_ASSESSMENT.md`：2026-03 体检报告，列出了遗留问题及修复路线。
 
 ---

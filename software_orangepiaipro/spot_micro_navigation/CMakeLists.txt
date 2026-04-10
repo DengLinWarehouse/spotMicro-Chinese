@@ -18,6 +18,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/cmd_vel_safety_gate.py
   scripts/nav_mode_manager.py
+  scripts/periodic_map_saver.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

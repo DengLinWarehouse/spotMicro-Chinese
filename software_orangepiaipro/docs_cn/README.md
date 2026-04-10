@@ -92,19 +92,54 @@ Orange Pi Ubuntu 22.04 推荐遵循以下规则：
 
 其余子目录为 kinematics 子库、LCD 驱动、舵机标定文档等。
 
+## docs_cn 目录整理说明
+
+当前 `docs_cn` 已按主题拆分为 4 个子目录，根目录只保留：
+
+- `README.md`：总入口与总索引
+- `第三方库.txt`：第三方依赖清单，保留在根目录便于统一查阅
+
+推荐按下面的顺序找文档：
+
+1. 先看本文件，确认文档分类
+2. 再进入对应专题目录阅读
+3. 需要快速复制命令时，再结合 `../temp/命令缓存.txt`
+
 ## 中文指南索引
-- `ORANGEPI_AI_PRO_NOETIC_DEPLOYMENT.md`：基于 2026-03 实际落地过程整理的香橙派 AI Pro + Ubuntu 22.04 + ROS1 Noetic + SpotMicro 部署总结，适合作为后续批量复刻的标准参考。
-- `SpotMicro 导航方案设计.md`：围绕 RPLidar 室内导航链路给出的专项设计文档，覆盖 Hector 建图、独立 odom、AMCL、A*、局部跟踪、速度安全门、风险分析和实验计划，适合作为导航功能落地基线。
-- `tf_chain_spotmicro_navigation.md`：围绕 SpotMicro 导航 TF 链给出的专项说明文档，解释 `map/odom/base_footprint/base_link/lidar_link` 的含义，并结合现有代码说明“当前谁在发 TF、后续应该谁来发”。
-- `navigation_stack_runbook.md`：围绕新加入的 `spot_micro_navigation` 包给出的运行手册，覆盖雷达调试、Hector/Gmapping 建图、AMCL 定位、A*/Dijkstra 全局规划、DWA 与速度安全门的启动方式。
-- `OrangePi_Jammy_Noetic_导航编译排障.md`：针对 Orange Pi Ubuntu 22.04 + ROS1 Noetic 源码工作区整理的导航编译排障手册，覆盖 `cv_bridge` / `laser_geometry` / `rviz` 缺失时的最小可落地修复路径。
-- `RPLidar_Hector_实操问题复盘.md`：总结本次 Orange Pi 上雷达环境安装、源码编译、RPLidar 调试、TF 校验、Hector 建图过程中遇到的真实问题、根因、修复动作与后续建议，适合作为现场排障复盘文档。
-- `../orangepi_ros_backup_template/README.md`：香橙派 ROS 远程备份模板入口，包含源码导出脚本、依赖清单采集脚本、恢复说明和补丁目录规范，适合把 `ros_noetic_ws` / `spotmicro_ws` 备份到远程仓库。
-- `大模型与训练模型接入路线图.md`：围绕现有 SpotMicro 仓库的模型接入边界、推荐架构、阶段路线图、安全约束和实施顺序的专项设计文档，适合作为后续智能化改造的主参考。
-- `servo_calibration.md`：舵机校准全过程与参考表格说明。
-- `LEARNING_GUIDE.md`：学习路线与背景知识。
-- `实验操作手册.md`：一步一步跑通实验程序的详细 runbook；已补充 Orange Pi Ubuntu 22.04 与双工作区避坑说明。
-- `../docs/build_notes.md`：记录复刻过程中的额外构建问题（CATKIN_IGNORE、子模块、依赖安装），与 runbook 互补。
+
+### 01_环境部署
+
+- `01_环境部署/ORANGEPI_AI_PRO_NOETIC_DEPLOYMENT.md`：Orange Pi AI Pro + Ubuntu 22.04 + ROS1 Noetic + SpotMicro 的部署总结，适合作为复刻基线。
+- `01_环境部署/OrangePi_Jammy_Noetic_导航编译排障.md`：导航相关源码依赖、编译失败与最小修复路径的排障手册。
+- `01_环境部署/实验操作手册.md`：从环境准备、工作区初始化到基础运行的全流程操作手册。
+
+### 02_标定与运动
+
+- `02_标定与运动/servo_calibration.md`：舵机校准全过程与参考表格说明。
+- `02_标定与运动/舵机标定计算说明.md`：舵机 YAML 参数与标定计算的数学说明。
+- `02_标定与运动/舵机校准参考表格.ods`：舵机校准原始记录与计算表格。
+- `02_标定与运动/运动调试复盘.md`：运动控制与调试阶段的问题复盘。
+
+### 03_导航与雷达
+
+- `03_导航与雷达/雷达使用手册.md`：雷达日常使用总手册，适合作为正式使用入口。
+- `03_导航与雷达/无RViz纯命令行导航测试手册.md`：无 GUI / SSH 场景下的纯命令行导航测试手册。
+- `03_导航与雷达/SpotMicro_雷达建图与AMCL定位阶段总结.md`：本轮雷达建图、地图保存与 AMCL 定位的阶段总结。
+- `03_导航与雷达/RPLidar_Hector_实操问题复盘.md`：RPLidar、TF、Hector 建图过程中的现场问题与修复记录。
+- `03_导航与雷达/AMCL_move_base_源码补齐方案.md`：从 Hector 过渡到 `amcl / move_base` 的源码补齐与验证方案。
+- `03_导航与雷达/navigation_stack_runbook.md`：`spot_micro_navigation` 包的运行手册。
+- `03_导航与雷达/SpotMicro 导航方案设计.md`：导航总体设计文档，覆盖 Hector、AMCL、全局规划、局部规划和安全门。
+- `03_导航与雷达/tf_chain_spotmicro_navigation.md`：导航 TF 链设计说明。
+
+### 04_学习与规划
+
+- `04_学习与规划/LEARNING_GUIDE.md`：学习路线与背景知识。
+- `04_学习与规划/大模型与训练模型接入路线图.md`：大模型与训练模型接入 SpotMicro 的路线图。
+
+### 其他入口
+
+- `../orangepi_ros_backup_template/README.md`：Orange Pi ROS 远程备份模板入口。
+- `../docs/build_notes.md`：构建补充笔记，与部署文档互补。
 
 
 ## 构建前置
