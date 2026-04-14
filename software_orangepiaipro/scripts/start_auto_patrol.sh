@@ -17,7 +17,7 @@ require_cmd() {
 build_wrapped_command() {
   local inner_cmd="$1"
   local wrapped
-  printf -v wrapped "bash %q bash -lc %q" "${COMMON_RUNNER}" "${inner_cmd}"
+  printf -v wrapped "bash %q bash -c %q" "${COMMON_RUNNER}" "${inner_cmd}"
   printf '%s' "${wrapped}"
 }
 
