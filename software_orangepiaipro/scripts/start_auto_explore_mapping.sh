@@ -7,6 +7,17 @@ MODE_CONFIG="${1:-${REPO_ROOT}/spot_micro_navigation/config/robot_mode_config.ya
 SESSION_NAME="${SPOTMICRO_TMUX_SESSION:-spotmicro_auto_explore}"
 COMMON_RUNNER="${SCRIPT_DIR}/common_run_on_all_cores.sh"
 STOP_SCRIPT="${SCRIPT_DIR}/safe_stop_robot.sh"
+RUN_TS="$(date +%Y%m%d_%H%M%S)"
+RUN_ID="auto_explore_${RUN_TS}"
+RUNTIME_EXPORTS=""
+
+append_runtime_export() {
+  local name="$1"
+  local value="$2"
+  local quoted
+  printf -v quoted "%q" "${value}"
+  RUNTIME_EXPORTS+="export ${name}=${quoted}; "
+}
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -18,7 +29,7 @@ require_cmd() {
 build_wrapped_command() {
   local inner_cmd="$1"
   local wrapped
-  printf -v wrapped "bash %q bash -c %q" "${COMMON_RUNNER}" "${inner_cmd}"
+  printf -v wrapped "bash %q bash -c %q" "${COMMON_RUNNER}" "${RUNTIME_EXPORTS}${inner_cmd}"
   printf '%s' "${wrapped}"
 }
 
@@ -50,6 +61,30 @@ if tmux has-session -t "${SESSION_NAME}" 2>/dev/null; then
 fi
 
 mkdir -p "${AUTOEXP_AUTOSAVE_DIRECTORY}"
+
+if [[ "${LOGGING_ENABLED}" == "true" ]]; then
+  RUN_LOG_DIR="${LOGGING_ROOT_DIRECTORY}/${RUN_ID}"
+  mkdir -p "${RUN_LOG_DIR}/pane_logs" "${RUN_LOG_DIR}/metadata"
+  append_runtime_export "SPOTMICRO_RUN_ID" "${RUN_ID}"
+  append_runtime_export "SPOTMICRO_RUN_LOG_DIR" "${RUN_LOG_DIR}"
+
+  if [[ "${LOGGING_ROS_LOG_ENABLED}" == "true" ]]; then
+    mkdir -p "${RUN_LOG_DIR}/rosconsole"
+    append_runtime_export "ROS_LOG_DIR" "${RUN_LOG_DIR}/rosconsole"
+  fi
+
+  {
+    echo "run_id=${RUN_ID}"
+    echo "mode=auto_explore_mapping"
+    echo "session_name=${SESSION_NAME}"
+    echo "mode_config=${MODE_CONFIG}"
+    echo "run_log_dir=${RUN_LOG_DIR}"
+    echo "autosave_directory=${AUTOEXP_AUTOSAVE_DIRECTORY}"
+    echo "rosbag_enabled=${LOGGING_ROSBAG_ENABLED}"
+    echo "rosbag_topics=${LOGGING_ROSBAG_TOPICS}"
+    echo "timestamp_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  } > "${RUN_LOG_DIR}/metadata/session.env"
+fi
 
 MAIN_CMD="$(build_wrapped_command "roslaunch spot_micro_navigation auto_explore_mapping.launch \
 scan_topic:=${SCAN_TOPIC} \
@@ -88,6 +123,12 @@ rplidar_angle_compensate:=${RPLIDAR_ANGLE_COMPENSATE}")"
 
 KEYBOARD_CMD="$(build_wrapped_command "rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py /cmd_vel:=${CMD_VEL_MANUAL_TOPIC}")"
 MONITOR_CMD="$(build_wrapped_command "while ! rostopic echo ${AUTO_STATE_TOPIC}; do sleep 1; done")"
+ROSBAG_CMD=""
+
+if [[ "${LOGGING_ENABLED}" == "true" && "${LOGGING_ROSBAG_ENABLED}" == "true" ]]; then
+  mkdir -p "${RUN_LOG_DIR}/rosbag"
+  ROSBAG_CMD="$(build_wrapped_command "command -v rosbag >/dev/null 2>&1 || { echo '[ERROR] Missing required command: rosbag' >&2; exit 1; }; exec rosbag record --output-prefix ${RUN_LOG_DIR}/rosbag/${LOGGING_ROSBAG_OUTPUT_PREFIX}_${RUN_ID} ${LOGGING_ROSBAG_TOPICS}")"
+fi
 
 printf -v STOP_CMD "bash %q %q %q" "${STOP_SCRIPT}" "${MODE_CONFIG}" "${SESSION_NAME}"
 
@@ -99,5 +140,20 @@ tmux split-window -h -t "${SESSION_NAME}:0.0"
 tmux send-keys -t "${SESSION_NAME}:0.1" "${KEYBOARD_CMD}" C-m
 tmux split-window -v -t "${SESSION_NAME}:0.1"
 tmux send-keys -t "${SESSION_NAME}:0.2" "${MONITOR_CMD}" C-m
+if [[ -n "${ROSBAG_CMD}" ]]; then
+  tmux split-window -v -t "${SESSION_NAME}:0.0"
+  tmux send-keys -t "${SESSION_NAME}:0.3" "${ROSBAG_CMD}" C-m
+fi
+if [[ "${LOGGING_ENABLED}" == "true" && "${LOGGING_PANE_CAPTURE_ENABLED}" == "true" ]]; then
+  tmux pipe-pane -o -t "${SESSION_NAME}:0.0" "cat >> '${RUN_LOG_DIR}/pane_logs/main.log'"
+  tmux pipe-pane -o -t "${SESSION_NAME}:0.1" "cat >> '${RUN_LOG_DIR}/pane_logs/keyboard.log'"
+  tmux pipe-pane -o -t "${SESSION_NAME}:0.2" "cat >> '${RUN_LOG_DIR}/pane_logs/monitor.log'"
+  if [[ -n "${ROSBAG_CMD}" ]]; then
+    tmux pipe-pane -o -t "${SESSION_NAME}:0.3" "cat >> '${RUN_LOG_DIR}/pane_logs/rosbag.log'"
+  fi
+fi
 tmux select-layout -t "${SESSION_NAME}:0" tiled
+if [[ "${LOGGING_ENABLED}" == "true" ]]; then
+  echo "[INFO] runtime logs: ${RUN_LOG_DIR}"
+fi
 tmux attach -t "${SESSION_NAME}"

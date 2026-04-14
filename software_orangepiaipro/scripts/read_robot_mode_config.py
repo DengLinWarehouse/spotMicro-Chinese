@@ -34,6 +34,16 @@ def expand_path(value):
     return os.path.expanduser(text(value))
 
 
+def topic_text(value, default_topics):
+    if value is None:
+        topics = default_topics
+    elif isinstance(value, (list, tuple)):
+        topics = [text(item).strip() for item in value if text(item).strip()]
+    else:
+        topics = text(value).split()
+    return " ".join(topics)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--shell", action="store_true", help="Print shell export statements")
@@ -48,6 +58,27 @@ def main():
     mode_cfg = data.get(args.mode, {})
     rplidar = common.get("rplidar", {})
     lifecycle = common.get("lifecycle", {})
+    logging_cfg = common.get("logging", {})
+
+    default_rosbag_topics = [
+        text(common.get("scan_topic"), "/scan"),
+        text(common.get("cmd_vel_topic"), "/cmd_vel"),
+        text(common.get("cmd_vel_manual_topic"), "/cmd_vel_manual"),
+        text(common.get("cmd_vel_auto_topic"), "/cmd_vel_auto"),
+        text(common.get("cmd_vel_mux_topic"), "/cmd_vel_mux_raw"),
+        text(common.get("stand_topic"), "/stand_cmd"),
+        text(common.get("walk_topic"), "/walk_cmd"),
+        text(common.get("idle_topic"), "/idle_cmd"),
+        text(common.get("auto_mode_enable_topic"), "/spot_micro/auto_mode/enable"),
+        text(common.get("auto_explore_stop_topic"), "/spot_micro/auto_explore/stop"),
+        text(common.get("auto_state_topic"), "/spot_micro/auto_explore/state"),
+        text(common.get("cmd_vel_source_topic"), "/spot_micro/cmd_vel_arbiter/source"),
+        "/tf",
+        "/tf_static",
+        "/map",
+        "/odom",
+        "/rosout",
+    ]
 
     exports = {
         "MAP_YAML": expand_path(common.get("map_yaml")),
@@ -78,6 +109,13 @@ def main():
         "RPLIDAR_FRAME_ID": text(rplidar.get("frame_id"), "lidar_link"),
         "RPLIDAR_INVERTED": bool_text(rplidar.get("inverted")),
         "RPLIDAR_ANGLE_COMPENSATE": bool_text(rplidar.get("angle_compensate", True)),
+        "LOGGING_ENABLED": bool_text(logging_cfg.get("enabled", True)),
+        "LOGGING_ROOT_DIRECTORY": expand_path(logging_cfg.get("root_directory", "~/Desktop/SpotMicro/logs")),
+        "LOGGING_PANE_CAPTURE_ENABLED": bool_text(logging_cfg.get("pane_capture_enabled", True)),
+        "LOGGING_ROS_LOG_ENABLED": bool_text(logging_cfg.get("ros_log_enabled", True)),
+        "LOGGING_ROSBAG_ENABLED": bool_text(logging_cfg.get("rosbag_enabled", True)),
+        "LOGGING_ROSBAG_OUTPUT_PREFIX": text(logging_cfg.get("rosbag_output_prefix", "spotmicro_runtime")),
+        "LOGGING_ROSBAG_TOPICS": topic_text(logging_cfg.get("rosbag_topics"), default_rosbag_topics),
         "AUTOEXP_ENABLED": bool_text(mode_cfg.get("enabled", True)) if args.mode == "auto_explore_mapping" else "true",
         "AUTOEXP_AUTOSAVE_ENABLED": bool_text(mode_cfg.get("autosave_enabled", True)),
         "AUTOEXP_AUTOSAVE_INTERVAL_SEC": text(mode_cfg.get("autosave_interval_sec"), "120.0"),

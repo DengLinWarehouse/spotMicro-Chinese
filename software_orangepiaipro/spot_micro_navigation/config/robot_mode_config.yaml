@@ -12,6 +12,31 @@ common:
   auto_explore_stop_topic: /spot_micro/auto_explore/stop
   auto_state_topic: /spot_micro/auto_explore/state
   cmd_vel_source_topic: /spot_micro/cmd_vel_arbiter/source
+  logging:
+    enabled: true
+    root_directory: ~/Desktop/SpotMicro/logs
+    pane_capture_enabled: true
+    ros_log_enabled: true
+    rosbag_enabled: true
+    rosbag_output_prefix: spotmicro_runtime
+    rosbag_topics:
+      - /scan
+      - /cmd_vel
+      - /cmd_vel_manual
+      - /cmd_vel_auto
+      - /cmd_vel_mux_raw
+      - /stand_cmd
+      - /walk_cmd
+      - /idle_cmd
+      - /spot_micro/auto_mode/enable
+      - /spot_micro/auto_explore/stop
+      - /spot_micro/auto_explore/state
+      - /spot_micro/cmd_vel_arbiter/source
+      - /tf
+      - /tf_static
+      - /map
+      - /odom
+      - /rosout
   lifecycle:
     startup_idle_enabled: true
     startup_idle_delay_sec: 0.30
