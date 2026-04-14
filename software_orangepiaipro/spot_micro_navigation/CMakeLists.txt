@@ -21,6 +21,7 @@ catkin_install_python(PROGRAMS
   scripts/laser_wander_explorer.py
   scripts/nav_mode_manager.py
   scripts/periodic_map_saver.py
+  scripts/safe_stop_robot.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

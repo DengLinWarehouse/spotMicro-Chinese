@@ -4,6 +4,9 @@
   <arg name="cmd_vel_manual_topic" default="/cmd_vel_manual" />
   <arg name="cmd_vel_auto_topic" default="/cmd_vel_auto" />
   <arg name="cmd_vel_mux_topic" default="/cmd_vel_mux_raw" />
+  <arg name="stand_topic" default="/stand_cmd" />
+  <arg name="walk_topic" default="/walk_cmd" />
+  <arg name="idle_topic" default="/idle_cmd" />
   <arg name="enable_topic" default="/spot_micro/auto_mode/enable" />
   <arg name="stop_topic" default="/spot_micro/auto_explore/stop" />
   <arg name="state_topic" default="/spot_micro/auto_explore/state" />
@@ -34,6 +37,16 @@
   <arg name="autosave_directory" default="$(env HOME)/Desktop/SpotMicro/maps/autosave" />
   <arg name="autosave_prefix" default="hector_autosave" />
   <arg name="autosave_keep_last" default="10" />
+  <arg name="startup_idle_enabled" default="true" />
+  <arg name="startup_idle_delay_sec" default="0.30" />
+  <arg name="startup_stand_delay_sec" default="1.80" />
+  <arg name="startup_walk_delay_sec" default="1.60" />
+  <arg name="startup_auto_enable_delay_sec" default="0.80" />
+  <arg name="startup_zero_cmd_duration_sec" default="0.80" />
+  <arg name="shutdown_zero_cmd_duration_sec" default="1.00" />
+  <arg name="shutdown_stand_hold_sec" default="1.20" />
+  <arg name="pulse_count" default="3" />
+  <arg name="pulse_interval_sec" default="0.20" />
 
   <group if="$(arg run_motion_cmd)">
     <include file="$(find spot_micro_motion_cmd)/launch/motion_cmd.launch" />
@@ -48,9 +61,25 @@
   </node>
 
   <node if="$(arg run_mode_manager)" pkg="spot_micro_navigation" type="nav_mode_manager.py" name="nav_mode_manager" output="screen">
-    <param name="stand_topic" value="/stand_cmd" />
-    <param name="walk_topic" value="/walk_cmd" />
-    <param name="idle_topic" value="/idle_cmd" />
+    <param name="stand_topic" value="$(arg stand_topic)" />
+    <param name="walk_topic" value="$(arg walk_topic)" />
+    <param name="idle_topic" value="$(arg idle_topic)" />
+    <param name="enable_topic" value="$(arg enable_topic)" />
+    <param name="stop_topic" value="$(arg stop_topic)" />
+    <param name="manual_cmd_topic" value="$(arg cmd_vel_manual_topic)" />
+    <param name="auto_cmd_topic" value="$(arg cmd_vel_auto_topic)" />
+    <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)" />
+    <param name="auto_enable_after_walk" value="$(arg auto_mode_enabled)" />
+    <param name="startup_idle_enabled" value="$(arg startup_idle_enabled)" />
+    <param name="startup_idle_delay_sec" value="$(arg startup_idle_delay_sec)" />
+    <param name="startup_stand_delay_sec" value="$(arg startup_stand_delay_sec)" />
+    <param name="startup_walk_delay_sec" value="$(arg startup_walk_delay_sec)" />
+    <param name="startup_auto_enable_delay_sec" value="$(arg startup_auto_enable_delay_sec)" />
+    <param name="startup_zero_cmd_duration_sec" value="$(arg startup_zero_cmd_duration_sec)" />
+    <param name="shutdown_zero_cmd_duration_sec" value="$(arg shutdown_zero_cmd_duration_sec)" />
+    <param name="shutdown_stand_hold_sec" value="$(arg shutdown_stand_hold_sec)" />
+    <param name="pulse_count" value="$(arg pulse_count)" />
+    <param name="pulse_interval_sec" value="$(arg pulse_interval_sec)" />
   </node>
 
   <include file="$(find spot_micro_navigation)/launch/slam_hector_mapping.launch">
@@ -73,7 +102,7 @@
     <param name="enable_topic" value="$(arg enable_topic)" />
     <param name="stop_topic" value="$(arg stop_topic)" />
     <param name="state_topic" value="$(arg state_topic)" />
-    <param name="enabled" value="$(arg auto_mode_enabled)" />
+    <param name="enabled" value="false" />
   </node>
 
   <node pkg="spot_micro_navigation" type="cmd_vel_arbiter.py" name="cmd_vel_arbiter" output="screen">
@@ -83,7 +112,7 @@
     <param name="output_topic" value="$(arg cmd_vel_mux_topic)" />
     <param name="enable_topic" value="$(arg enable_topic)" />
     <param name="source_topic" value="$(arg source_topic)" />
-    <param name="auto_enabled" value="$(arg auto_mode_enabled)" />
+    <param name="auto_enabled" value="false" />
   </node>
 
   <node pkg="spot_micro_navigation" type="cmd_vel_safety_gate.py" name="cmd_vel_safety_gate" output="screen">

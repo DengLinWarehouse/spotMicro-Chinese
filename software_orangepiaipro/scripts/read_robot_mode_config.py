@@ -47,6 +47,7 @@ def main():
     common = data.get("common", {})
     mode_cfg = data.get(args.mode, {})
     rplidar = common.get("rplidar", {})
+    lifecycle = common.get("lifecycle", {})
 
     exports = {
         "MAP_YAML": expand_path(common.get("map_yaml")),
@@ -55,10 +56,23 @@ def main():
         "CMD_VEL_MANUAL_TOPIC": text(common.get("cmd_vel_manual_topic"), "/cmd_vel_manual"),
         "CMD_VEL_AUTO_TOPIC": text(common.get("cmd_vel_auto_topic"), "/cmd_vel_auto"),
         "CMD_VEL_MUX_TOPIC": text(common.get("cmd_vel_mux_topic"), "/cmd_vel_mux_raw"),
+        "STAND_TOPIC": text(common.get("stand_topic"), "/stand_cmd"),
+        "WALK_TOPIC": text(common.get("walk_topic"), "/walk_cmd"),
+        "IDLE_TOPIC": text(common.get("idle_topic"), "/idle_cmd"),
         "AUTO_MODE_ENABLE_TOPIC": text(common.get("auto_mode_enable_topic"), "/spot_micro/auto_mode/enable"),
         "AUTO_EXPLORE_STOP_TOPIC": text(common.get("auto_explore_stop_topic"), "/spot_micro/auto_explore/stop"),
         "AUTO_STATE_TOPIC": text(common.get("auto_state_topic"), "/spot_micro/auto_explore/state"),
         "CMD_VEL_SOURCE_TOPIC": text(common.get("cmd_vel_source_topic"), "/spot_micro/cmd_vel_arbiter/source"),
+        "LIFECYCLE_STARTUP_IDLE_ENABLED": bool_text(lifecycle.get("startup_idle_enabled", True)),
+        "LIFECYCLE_STARTUP_IDLE_DELAY_SEC": text(lifecycle.get("startup_idle_delay_sec"), "0.30"),
+        "LIFECYCLE_STARTUP_STAND_DELAY_SEC": text(lifecycle.get("startup_stand_delay_sec"), "1.80"),
+        "LIFECYCLE_STARTUP_WALK_DELAY_SEC": text(lifecycle.get("startup_walk_delay_sec"), "1.60"),
+        "LIFECYCLE_STARTUP_AUTO_ENABLE_DELAY_SEC": text(lifecycle.get("startup_auto_enable_delay_sec"), "0.80"),
+        "LIFECYCLE_STARTUP_ZERO_CMD_DURATION_SEC": text(lifecycle.get("startup_zero_cmd_duration_sec"), "0.80"),
+        "LIFECYCLE_SHUTDOWN_ZERO_CMD_DURATION_SEC": text(lifecycle.get("shutdown_zero_cmd_duration_sec"), "1.00"),
+        "LIFECYCLE_SHUTDOWN_STAND_HOLD_SEC": text(lifecycle.get("shutdown_stand_hold_sec"), "1.20"),
+        "LIFECYCLE_PULSE_COUNT": text(lifecycle.get("pulse_count"), "3"),
+        "LIFECYCLE_PULSE_INTERVAL_SEC": text(lifecycle.get("pulse_interval_sec"), "0.20"),
         "RPLIDAR_SERIAL_PORT": text(rplidar.get("serial_port"), "/dev/ttyUSB0"),
         "RPLIDAR_SERIAL_BAUDRATE": text(rplidar.get("serial_baudrate"), "115200"),
         "RPLIDAR_FRAME_ID": text(rplidar.get("frame_id"), "lidar_link"),

@@ -9,6 +9,7 @@ from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Twist
 from math import pi
+import time
 
 msg = """
 Spot Micro Walk Command
@@ -84,6 +85,8 @@ class SpotMicroKeyboardControl():
         self._ros_pub_walk_cmd       = rospy.Publisher('/walk_cmd',Bool, queue_size=1)
         self._ros_pub_stand_cmd      = rospy.Publisher('/stand_cmd',Bool,queue_size=1)
         self._ros_pub_idle_cmd       = rospy.Publisher('/idle_cmd',Bool,queue_size=1)
+        self._ros_pub_auto_enable    = rospy.Publisher('/spot_micro/auto_mode/enable',Bool,queue_size=1, latch=True)
+        self._ros_pub_auto_stop      = rospy.Publisher('/spot_micro/auto_explore/stop',Bool,queue_size=1, latch=True)
 
         rospy.loginfo("Keyboard control node publishers corrrectly initialized")
 
@@ -113,6 +116,21 @@ class SpotMicroKeyboardControl():
 
         self._ros_pub_angle_cmd.publish(self._angle_cmd_msg)
 
+    def pulse_bool(self, pub):
+        for _ in range(3):
+            pub.publish(Bool(data=True))
+            time.sleep(0.2)
+
+    def safe_stop(self):
+        rospy.loginfo('Keyboard control: issuing safe stop sequence.')
+        self._ros_pub_auto_enable.publish(Bool(data=False))
+        self._ros_pub_auto_stop.publish(Bool(data=True))
+        self.reset_all_motion_commands_to_zero()
+        time.sleep(0.4)
+        self.pulse_bool(self._ros_pub_stand_cmd)
+        time.sleep(0.8)
+        self.pulse_bool(self._ros_pub_idle_cmd)
+
     def getKey(self):
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
@@ -136,6 +154,7 @@ class SpotMicroKeyboardControl():
             else:
                 if userInput == 'quit':
                     rospy.loginfo("Exiting keyboard control node...")
+                    self.safe_stop()
                     break
                 
                 elif userInput == 'stand':
@@ -254,5 +273,8 @@ class SpotMicroKeyboardControl():
 
                                 
 if __name__ == "__main__":
-    smkc     = SpotMicroKeyboardControl()
-    smkc.run()
+    smkc = SpotMicroKeyboardControl()
+    try:
+        smkc.run()
+    except KeyboardInterrupt:
+        smkc.safe_stop()

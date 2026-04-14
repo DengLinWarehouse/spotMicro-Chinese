@@ -5,10 +5,24 @@ common:
   cmd_vel_manual_topic: /cmd_vel_manual
   cmd_vel_auto_topic: /cmd_vel_auto
   cmd_vel_mux_topic: /cmd_vel_mux_raw
+  stand_topic: /stand_cmd
+  walk_topic: /walk_cmd
+  idle_topic: /idle_cmd
   auto_mode_enable_topic: /spot_micro/auto_mode/enable
   auto_explore_stop_topic: /spot_micro/auto_explore/stop
   auto_state_topic: /spot_micro/auto_explore/state
   cmd_vel_source_topic: /spot_micro/cmd_vel_arbiter/source
+  lifecycle:
+    startup_idle_enabled: true
+    startup_idle_delay_sec: 0.30
+    startup_stand_delay_sec: 1.80
+    startup_walk_delay_sec: 1.60
+    startup_auto_enable_delay_sec: 0.80
+    startup_zero_cmd_duration_sec: 0.80
+    shutdown_zero_cmd_duration_sec: 1.00
+    shutdown_stand_hold_sec: 1.20
+    pulse_count: 3
+    pulse_interval_sec: 0.20
   rplidar:
     serial_port: /dev/ttyUSB0
     serial_baudrate: 115200

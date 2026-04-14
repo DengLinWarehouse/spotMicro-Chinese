@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MODE_CONFIG="${1:-${REPO_ROOT}/spot_micro_navigation/config/robot_mode_config.yaml}"
 SESSION_NAME="${SPOTMICRO_TMUX_SESSION:-spotmicro_auto_patrol}"
 COMMON_RUNNER="${SCRIPT_DIR}/common_run_on_all_cores.sh"
+STOP_SCRIPT="${SCRIPT_DIR}/safe_stop_robot.sh"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -32,6 +33,11 @@ fi
 
 if [[ ! -f "${COMMON_RUNNER}" ]]; then
   echo "Core affinity wrapper not found: ${COMMON_RUNNER}" >&2
+  exit 1
+fi
+
+if [[ ! -f "${STOP_SCRIPT}" ]]; then
+  echo "Safe stop script not found: ${STOP_SCRIPT}" >&2
   exit 1
 fi
 
@@ -62,6 +68,9 @@ cmd_vel_topic:=${CMD_VEL_TOPIC} \
 cmd_vel_manual_topic:=${CMD_VEL_MANUAL_TOPIC} \
 cmd_vel_auto_topic:=${CMD_VEL_AUTO_TOPIC} \
 cmd_vel_mux_topic:=${CMD_VEL_MUX_TOPIC} \
+stand_topic:=${STAND_TOPIC} \
+walk_topic:=${WALK_TOPIC} \
+idle_topic:=${IDLE_TOPIC} \
 enable_topic:=${AUTO_MODE_ENABLE_TOPIC} \
 stop_topic:=${AUTO_EXPLORE_STOP_TOPIC} \
 state_topic:=${AUTO_STATE_TOPIC} \
@@ -69,6 +78,16 @@ source_topic:=${CMD_VEL_SOURCE_TOPIC} \
 use_map_server:=${AUTOPATROL_USE_MAP_SERVER} \
 use_amcl:=${AUTOPATROL_USE_AMCL} \
 auto_mode_enabled:=${AUTOPATROL_ENABLED} \
+startup_idle_enabled:=${LIFECYCLE_STARTUP_IDLE_ENABLED} \
+startup_idle_delay_sec:=${LIFECYCLE_STARTUP_IDLE_DELAY_SEC} \
+startup_stand_delay_sec:=${LIFECYCLE_STARTUP_STAND_DELAY_SEC} \
+startup_walk_delay_sec:=${LIFECYCLE_STARTUP_WALK_DELAY_SEC} \
+startup_auto_enable_delay_sec:=${LIFECYCLE_STARTUP_AUTO_ENABLE_DELAY_SEC} \
+startup_zero_cmd_duration_sec:=${LIFECYCLE_STARTUP_ZERO_CMD_DURATION_SEC} \
+shutdown_zero_cmd_duration_sec:=${LIFECYCLE_SHUTDOWN_ZERO_CMD_DURATION_SEC} \
+shutdown_stand_hold_sec:=${LIFECYCLE_SHUTDOWN_STAND_HOLD_SEC} \
+pulse_count:=${LIFECYCLE_PULSE_COUNT} \
+pulse_interval_sec:=${LIFECYCLE_PULSE_INTERVAL_SEC} \
 rplidar_serial_port:=${RPLIDAR_SERIAL_PORT} \
 rplidar_serial_baudrate:=${RPLIDAR_SERIAL_BAUDRATE} \
 rplidar_frame_id:=${RPLIDAR_FRAME_ID} \
@@ -78,7 +97,11 @@ rplidar_angle_compensate:=${RPLIDAR_ANGLE_COMPENSATE}")"
 KEYBOARD_CMD="$(build_wrapped_command "rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py /cmd_vel:=${CMD_VEL_MANUAL_TOPIC}")"
 MONITOR_CMD="$(build_wrapped_command "while ! rostopic echo ${CMD_VEL_SOURCE_TOPIC}; do sleep 1; done")"
 
+printf -v STOP_CMD "bash %q %q %q" "${STOP_SCRIPT}" "${MODE_CONFIG}" "${SESSION_NAME}"
+
 tmux new-session -d -s "${SESSION_NAME}" -n auto_patrol
+tmux set-option -t "${SESSION_NAME}" remain-on-exit on
+tmux bind-key -T root -n C-c if-shell -F "#{==:#{session_name},${SESSION_NAME}}" "run-shell '${STOP_CMD}'" "send-keys C-c"
 tmux send-keys -t "${SESSION_NAME}:0.0" "${MAIN_CMD}" C-m
 tmux split-window -h -t "${SESSION_NAME}:0.0"
 tmux send-keys -t "${SESSION_NAME}:0.1" "${KEYBOARD_CMD}" C-m

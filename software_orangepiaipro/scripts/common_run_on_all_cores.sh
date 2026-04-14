@@ -34,6 +34,28 @@ read_first_nonempty_file() {
   return 1
 }
 
+remove_conda_from_path() {
+  local old_path entry new_path=""
+  old_path="${PATH:-}"
+  IFS=':' read -r -a _spotmicro_path_entries <<< "${old_path}"
+  for entry in "${_spotmicro_path_entries[@]}"; do
+    [[ -z "${entry}" ]] && continue
+    case "${entry}" in
+      *miniconda*|*anaconda*|*conda*)
+        continue
+        ;;
+    esac
+    if [[ -z "${new_path}" ]]; then
+      new_path="${entry}"
+    else
+      new_path="${new_path}:${entry}"
+    fi
+  done
+  if [[ -n "${new_path}" ]]; then
+    PATH="${new_path}"
+  fi
+}
+
 detect_target_cpu_set() {
   local cpuset_group
 
@@ -155,6 +177,16 @@ prepare_ros_env() {
   if command -v conda >/dev/null 2>&1; then
     conda deactivate 2>/dev/null || true
   fi
+
+  remove_conda_from_path
+  unset CONDA_PREFIX
+  unset CONDA_DEFAULT_ENV
+  unset CONDA_PROMPT_MODIFIER
+  unset CONDA_SHLVL
+  unset CONDA_EXE
+  unset CONDA_PYTHON_EXE
+  unset _CE_CONDA
+  unset _CE_M
 
   unset PYTHONPATH
   unset PYTHONHOME
