@@ -68,7 +68,7 @@ rplidar_inverted:=${RPLIDAR_INVERTED} \
 rplidar_angle_compensate:=${RPLIDAR_ANGLE_COMPENSATE}")"
 
 KEYBOARD_CMD="$(build_wrapped_command "rosrun spot_micro_keyboard_command spotMicroKeyboardMove.py /cmd_vel:=${CMD_VEL_MANUAL_TOPIC}")"
-MONITOR_CMD="$(build_wrapped_command "rostopic echo ${AUTO_STATE_TOPIC}")"
+MONITOR_CMD="$(build_wrapped_command "while ! rostopic echo ${AUTO_STATE_TOPIC}; do sleep 1; done")"
 
 tmux new-session -d -s "${SESSION_NAME}" -n auto_explore
 tmux send-keys -t "${SESSION_NAME}:0.0" "${MAIN_CMD}" C-m
