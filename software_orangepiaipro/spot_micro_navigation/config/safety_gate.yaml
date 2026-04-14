@@ -1,4 +1,5 @@
 scan_timeout: 0.30
+startup_scan_grace_sec: 3.00
 cmd_timeout: 0.50
 amcl_timeout: 1.00
 
@@ -11,12 +12,12 @@ max_cov_x: 0.20
 max_cov_y: 0.20
 max_cov_yaw: 0.35
 
-max_vx: 0.12
+max_vx: 0.04
 max_vy: 0.00
-max_wz: 0.20
+max_wz: 0.18
 
-accel_vx: 0.20
+accel_vx: 0.10
 accel_vy: 0.00
-accel_wz: 0.35
+accel_wz: 0.25
 
 publish_rate: 20.0

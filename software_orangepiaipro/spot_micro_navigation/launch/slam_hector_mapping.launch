@@ -4,13 +4,18 @@
   <arg name="odom_frame" default="odom" />
   <arg name="map_frame" default="map" />
   <arg name="config_file" default="$(find spot_micro_navigation)/config/hector_mapping.yaml" />
+  <arg name="hector_start_delay_sec" default="2.0" />
   <arg name="autosave_enabled" default="false" />
   <arg name="autosave_interval_sec" default="120.0" />
   <arg name="autosave_directory" default="$(env HOME)/Desktop/SpotMicro/maps/autosave" />
   <arg name="autosave_prefix" default="hector_autosave" />
   <arg name="autosave_keep_last" default="10" />
 
-  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
+  <node pkg="hector_mapping"
+        type="hector_mapping"
+        name="hector_mapping"
+        output="screen"
+        launch-prefix="bash $(find spot_micro_navigation)/scripts/run_with_delay.sh $(arg hector_start_delay_sec)">
     <rosparam command="load" file="$(arg config_file)" />
     <param name="base_frame" value="$(arg base_frame)" />
     <param name="odom_frame" value="$(arg odom_frame)" />

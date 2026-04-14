@@ -16,6 +16,7 @@ class CmdVelSafetyGate(object):
         self.require_amcl = rospy.get_param("~require_amcl", True)
 
         self.scan_timeout = rospy.get_param("~scan_timeout", 0.30)
+        self.startup_scan_grace_sec = rospy.get_param("~startup_scan_grace_sec", 3.00)
         self.cmd_timeout = rospy.get_param("~cmd_timeout", 0.50)
         self.amcl_timeout = rospy.get_param("~amcl_timeout", 1.00)
 
@@ -42,6 +43,7 @@ class CmdVelSafetyGate(object):
         self.last_amcl = None
         self.last_output = Twist()
         self.last_tick = rospy.Time.now()
+        self.start_time = rospy.Time.now()
 
         self.cmd_stamp = None
         self.scan_stamp = None
@@ -131,7 +133,9 @@ class CmdVelSafetyGate(object):
 
     def _unsafe(self):
         if not self._fresh(self.scan_stamp, self.scan_timeout):
-            rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: scan timed out")
+            elapsed = (rospy.Time.now() - self.start_time).to_sec()
+            if elapsed > self.startup_scan_grace_sec:
+                rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: scan timed out")
             return True
         if not self._fresh(self.cmd_stamp, self.cmd_timeout):
             return True

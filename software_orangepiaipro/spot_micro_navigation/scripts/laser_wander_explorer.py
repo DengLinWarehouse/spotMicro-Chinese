@@ -31,6 +31,7 @@ class LaserWanderExplorer(object):
         self.turn_speed = rospy.get_param("~turn_speed", 0.22)
         self.forward_safe_dist = rospy.get_param("~forward_safe_dist", 0.60)
         self.turn_trigger_dist = rospy.get_param("~turn_trigger_dist", 0.42)
+        self.turn_trigger_min_margin = rospy.get_param("~turn_trigger_min_margin", 0.10)
         self.stuck_dist = rospy.get_param("~stuck_dist", 0.30)
         self.stuck_side_dist = rospy.get_param("~stuck_side_dist", 0.28)
 
@@ -217,7 +218,12 @@ class LaserWanderExplorer(object):
         else:
             view = self._scan_view()
 
-            front_close = view["front_med"] <= self.turn_trigger_dist
+            # Use both the sector median and the nearest point so the explorer
+            # starts turning before the safety gate fully blocks forward motion.
+            front_close = (
+                view["front_med"] <= self.turn_trigger_dist
+                or view["front_min"] <= max(self.stuck_dist, self.turn_trigger_dist - self.turn_trigger_min_margin)
+            )
             escape_needed = (
                 view["front_med"] < self.stuck_dist
                 and view["left_med"] < self.stuck_side_dist
