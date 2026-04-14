@@ -1,0 +1,96 @@
+<launch>
+  <arg name="scan_topic" default="/scan" />
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="cmd_vel_manual_topic" default="/cmd_vel_manual" />
+  <arg name="cmd_vel_auto_topic" default="/cmd_vel_auto" />
+  <arg name="cmd_vel_mux_topic" default="/cmd_vel_mux_raw" />
+  <arg name="enable_topic" default="/spot_micro/auto_mode/enable" />
+  <arg name="stop_topic" default="/spot_micro/auto_explore/stop" />
+  <arg name="state_topic" default="/spot_micro/auto_explore/state" />
+  <arg name="source_topic" default="/spot_micro/cmd_vel_arbiter/source" />
+
+  <arg name="base_frame" default="base_footprint" />
+  <arg name="odom_frame" default="odom" />
+  <arg name="map_frame" default="map" />
+
+  <arg name="run_motion_cmd" default="true" />
+  <arg name="run_rplidar" default="true" />
+  <arg name="run_mode_manager" default="true" />
+
+  <arg name="rplidar_serial_port" default="/dev/ttyUSB0" />
+  <arg name="rplidar_serial_baudrate" default="115200" />
+  <arg name="rplidar_frame_id" default="lidar_link" />
+  <arg name="rplidar_inverted" default="false" />
+  <arg name="rplidar_angle_compensate" default="true" />
+
+  <arg name="wander_config" default="$(find spot_micro_navigation)/config/wander_explorer.yaml" />
+  <arg name="arbiter_config" default="$(find spot_micro_navigation)/config/cmd_vel_arbiter.yaml" />
+  <arg name="safety_config" default="$(find spot_micro_navigation)/config/safety_gate.yaml" />
+  <arg name="hector_config" default="$(find spot_micro_navigation)/config/hector_mapping.yaml" />
+
+  <arg name="auto_mode_enabled" default="true" />
+  <arg name="autosave_enabled" default="true" />
+  <arg name="autosave_interval_sec" default="120.0" />
+  <arg name="autosave_directory" default="$(env HOME)/Desktop/SpotMicro/maps/autosave" />
+  <arg name="autosave_prefix" default="hector_autosave" />
+  <arg name="autosave_keep_last" default="10" />
+
+  <group if="$(arg run_motion_cmd)">
+    <include file="$(find spot_micro_motion_cmd)/launch/motion_cmd.launch" />
+  </group>
+
+  <node if="$(arg run_rplidar)" name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
+    <param name="serial_port" value="$(arg rplidar_serial_port)" />
+    <param name="serial_baudrate" value="$(arg rplidar_serial_baudrate)" />
+    <param name="frame_id" value="$(arg rplidar_frame_id)" />
+    <param name="inverted" value="$(arg rplidar_inverted)" />
+    <param name="angle_compensate" value="$(arg rplidar_angle_compensate)" />
+  </node>
+
+  <node if="$(arg run_mode_manager)" pkg="spot_micro_navigation" type="nav_mode_manager.py" name="nav_mode_manager" output="screen">
+    <param name="stand_topic" value="/stand_cmd" />
+    <param name="walk_topic" value="/walk_cmd" />
+    <param name="idle_topic" value="/idle_cmd" />
+  </node>
+
+  <include file="$(find spot_micro_navigation)/launch/slam_hector_mapping.launch">
+    <arg name="scan_topic" value="$(arg scan_topic)" />
+    <arg name="base_frame" value="$(arg base_frame)" />
+    <arg name="odom_frame" value="$(arg odom_frame)" />
+    <arg name="map_frame" value="$(arg map_frame)" />
+    <arg name="config_file" value="$(arg hector_config)" />
+    <arg name="autosave_enabled" value="$(arg autosave_enabled)" />
+    <arg name="autosave_interval_sec" value="$(arg autosave_interval_sec)" />
+    <arg name="autosave_directory" value="$(arg autosave_directory)" />
+    <arg name="autosave_prefix" value="$(arg autosave_prefix)" />
+    <arg name="autosave_keep_last" value="$(arg autosave_keep_last)" />
+  </include>
+
+  <node pkg="spot_micro_navigation" type="laser_wander_explorer.py" name="laser_wander_explorer" output="screen">
+    <rosparam command="load" file="$(arg wander_config)" />
+    <param name="scan_topic" value="$(arg scan_topic)" />
+    <param name="output_topic" value="$(arg cmd_vel_auto_topic)" />
+    <param name="enable_topic" value="$(arg enable_topic)" />
+    <param name="stop_topic" value="$(arg stop_topic)" />
+    <param name="state_topic" value="$(arg state_topic)" />
+    <param name="enabled" value="$(arg auto_mode_enabled)" />
+  </node>
+
+  <node pkg="spot_micro_navigation" type="cmd_vel_arbiter.py" name="cmd_vel_arbiter" output="screen">
+    <rosparam command="load" file="$(arg arbiter_config)" />
+    <param name="manual_topic" value="$(arg cmd_vel_manual_topic)" />
+    <param name="auto_topic" value="$(arg cmd_vel_auto_topic)" />
+    <param name="output_topic" value="$(arg cmd_vel_mux_topic)" />
+    <param name="enable_topic" value="$(arg enable_topic)" />
+    <param name="source_topic" value="$(arg source_topic)" />
+    <param name="auto_enabled" value="$(arg auto_mode_enabled)" />
+  </node>
+
+  <node pkg="spot_micro_navigation" type="cmd_vel_safety_gate.py" name="cmd_vel_safety_gate" output="screen">
+    <rosparam command="load" file="$(arg safety_config)" />
+    <param name="input_topic" value="$(arg cmd_vel_mux_topic)" />
+    <param name="output_topic" value="$(arg cmd_vel_topic)" />
+    <param name="scan_topic" value="$(arg scan_topic)" />
+    <param name="require_amcl" value="false" />
+  </node>
+</launch>

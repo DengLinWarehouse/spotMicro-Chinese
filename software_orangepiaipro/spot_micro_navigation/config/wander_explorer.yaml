@@ -1,0 +1,27 @@
+enabled: true
+scan_timeout: 0.30
+cmd_rate: 10.0
+
+cruise_speed: 0.06
+turn_speed: 0.22
+forward_safe_dist: 0.60
+turn_trigger_dist: 0.42
+stuck_dist: 0.30
+stuck_side_dist: 0.28
+
+front_center_deg: 20.0
+front_left_min_deg: 20.0
+front_left_max_deg: 70.0
+front_right_min_deg: -70.0
+front_right_max_deg: -20.0
+
+turn_duration_sec: 0.90
+turn_duration_jitter_sec: 0.30
+escape_turn_duration_sec: 1.30
+escape_pause_sec: 0.25
+stuck_cycles_threshold: 8
+turn_hold_cycles_threshold: 20
+
+random_turn_bias: 0.04
+side_balance_gain: 0.15
+bias_refresh_sec: 1.5

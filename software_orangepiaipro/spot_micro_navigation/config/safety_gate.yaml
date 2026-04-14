@@ -4,6 +4,8 @@ amcl_timeout: 1.00
 
 front_sector_deg: 20.0
 front_stop_distance: 0.35
+hard_stop_sector_deg: 35.0
+hard_stop_distance: 0.20
 
 max_cov_x: 0.20
 max_cov_y: 0.20

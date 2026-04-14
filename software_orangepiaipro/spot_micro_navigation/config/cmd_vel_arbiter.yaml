@@ -1,0 +1,4 @@
+manual_timeout: 0.60
+auto_timeout: 0.50
+publish_rate: 20.0
+auto_enabled: true

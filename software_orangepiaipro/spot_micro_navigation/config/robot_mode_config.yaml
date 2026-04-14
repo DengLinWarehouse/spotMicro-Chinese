@@ -1,0 +1,30 @@
+common:
+  map_yaml: ~/Desktop/SpotMicro/maps/default_room.yaml
+  scan_topic: /scan
+  cmd_vel_topic: /cmd_vel
+  cmd_vel_manual_topic: /cmd_vel_manual
+  cmd_vel_auto_topic: /cmd_vel_auto
+  cmd_vel_mux_topic: /cmd_vel_mux_raw
+  auto_mode_enable_topic: /spot_micro/auto_mode/enable
+  auto_explore_stop_topic: /spot_micro/auto_explore/stop
+  auto_state_topic: /spot_micro/auto_explore/state
+  cmd_vel_source_topic: /spot_micro/cmd_vel_arbiter/source
+  rplidar:
+    serial_port: /dev/ttyUSB0
+    serial_baudrate: 115200
+    frame_id: lidar_link
+    inverted: false
+    angle_compensate: true
+
+auto_explore_mapping:
+  enabled: true
+  autosave_enabled: true
+  autosave_interval_sec: 120.0
+  autosave_directory: ~/Desktop/SpotMicro/maps/autosave
+  autosave_prefix: hector_autosave
+  autosave_keep_last: 10
+
+auto_patrol:
+  enabled: true
+  use_map_server: true
+  use_amcl: false

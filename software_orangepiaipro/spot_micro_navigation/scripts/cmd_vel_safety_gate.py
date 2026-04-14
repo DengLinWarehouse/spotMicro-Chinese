@@ -2,9 +2,9 @@
 import math
 
 import rospy
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import PoseWithCovarianceStamped
 
 
 class CmdVelSafetyGate(object):
@@ -13,6 +13,7 @@ class CmdVelSafetyGate(object):
         self.output_topic = rospy.get_param("~output_topic", "/cmd_vel")
         self.scan_topic = rospy.get_param("~scan_topic", "/scan")
         self.amcl_pose_topic = rospy.get_param("~amcl_pose_topic", "/amcl_pose")
+        self.require_amcl = rospy.get_param("~require_amcl", True)
 
         self.scan_timeout = rospy.get_param("~scan_timeout", 0.30)
         self.cmd_timeout = rospy.get_param("~cmd_timeout", 0.50)
@@ -20,6 +21,8 @@ class CmdVelSafetyGate(object):
 
         self.front_sector_deg = rospy.get_param("~front_sector_deg", 20.0)
         self.front_stop_distance = rospy.get_param("~front_stop_distance", 0.35)
+        self.hard_stop_sector_deg = rospy.get_param("~hard_stop_sector_deg", 35.0)
+        self.hard_stop_distance = rospy.get_param("~hard_stop_distance", 0.20)
 
         self.max_cov_x = rospy.get_param("~max_cov_x", 0.20)
         self.max_cov_y = rospy.get_param("~max_cov_y", 0.20)
@@ -84,6 +87,22 @@ class CmdVelSafetyGate(object):
             angle += self.last_scan.angle_increment
         return blocked
 
+    def _hard_front_blocked(self):
+        if self.last_scan is None:
+            return True
+
+        half_sector = math.radians(self.hard_stop_sector_deg)
+        angle = self.last_scan.angle_min
+        blocked = False
+
+        for value in self.last_scan.ranges:
+            if -half_sector <= angle <= half_sector:
+                if math.isfinite(value) and self.last_scan.range_min <= value <= self.hard_stop_distance:
+                    blocked = True
+                    break
+            angle += self.last_scan.angle_increment
+        return blocked
+
     def _amcl_ok(self):
         if self.last_amcl is None:
             return False
@@ -116,12 +135,16 @@ class CmdVelSafetyGate(object):
             return True
         if not self._fresh(self.cmd_stamp, self.cmd_timeout):
             return True
-        if not self._fresh(self.amcl_stamp, self.amcl_timeout):
-            rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: AMCL timed out")
+        if self._hard_front_blocked():
+            rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: hard obstacle stop")
             return True
-        if not self._amcl_ok():
-            rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: AMCL covariance too large")
-            return True
+        if self.require_amcl:
+            if not self._fresh(self.amcl_stamp, self.amcl_timeout):
+                rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: AMCL timed out")
+                return True
+            if not self._amcl_ok():
+                rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: AMCL covariance too large")
+                return True
         if self.last_cmd.linear.x > 0.0 and self._front_blocked():
             rospy.logwarn_throttle(1.0, "cmd_vel_safety_gate: front obstacle stop")
             return True
