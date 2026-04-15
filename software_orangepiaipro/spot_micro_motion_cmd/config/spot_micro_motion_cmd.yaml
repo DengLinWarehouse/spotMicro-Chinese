@@ -24,18 +24,31 @@ num_servos: 12
 servo_max_angle_deg: 55.0  # PDI-HV5523MG: 120° total (±60°), 5° safety margin
 servo_proportional_limit: 2.5  # Raise the clip threshold when calibrated travel exceeds +/-1.0.
 # Wiring: LF(1-3) -> RF(4-6) -> LB(7-9) -> RB(10-12), per leg: HIP -> UPPER -> LOWER
-# Recalibrated on Orange Pi AI Pro after servo reassembly of LF_3 and RF_3.
-# These values match the working runtime parameters confirmed by roslaunch on 2026-03-27.
-LF_1: {num: 1,  center: 306, range: 139, direction:  1, center_angle_deg:  -3.2}
+# Previous 2026-03-27 values kept below for quick rollback reference:
+# LF_1: {num: 1,  center: 306, range: 139, direction:  1, center_angle_deg:  -3.2}
+# LF_2: {num: 2,  center: 306, range: 260, direction:  1, center_angle_deg:   0.0}
+# LF_3: {num: 3,  center: 306, range: 225, direction:  1, center_angle_deg: -26.9}
+# RF_1: {num: 4,  center: 306, range: 127, direction:  1, center_angle_deg:   3.5}
+# RF_2: {num: 5,  center: 306, range: 248, direction:  1, center_angle_deg:  -3.1}
+# RF_3: {num: 6,  center: 306, range: 208, direction:  1, center_angle_deg: 121.8}
+# LB_1: {num: 7,  center: 306, range:  98, direction:  1, center_angle_deg: -32.0}
+# LB_2: {num: 8,  center: 306, range: 238, direction:  1, center_angle_deg:  -4.6}
+# LB_3: {num: 9,  center: 306, range: 220, direction:  1, center_angle_deg: -15.5}
+# RB_1: {num: 10, center: 306, range: 122, direction:  1, center_angle_deg: -13.5}
+# RB_2: {num: 11, center: 306, range: 244, direction:  1, center_angle_deg:  -4.5}
+# RB_3: {num: 12, center: 306, range: 227, direction:  1, center_angle_deg:  -0.5}
+# Recalibrated from oneServo measurements provided on 2026-04-15.
+# Note: servo physical travel was user-confirmed reachable; keep current clip settings.
+LF_1: {num: 1,  center: 306, range: 110, direction:  1, center_angle_deg: -34.0}
 LF_2: {num: 2,  center: 306, range: 260, direction:  1, center_angle_deg:   0.0}
 LF_3: {num: 3,  center: 306, range: 225, direction:  1, center_angle_deg: -26.9}
-RF_1: {num: 4,  center: 306, range: 127, direction:  1, center_angle_deg:   3.5}
+RF_1: {num: 4,  center: 306, range: 108, direction:  1, center_angle_deg:  -6.1}
 RF_2: {num: 5,  center: 306, range: 248, direction:  1, center_angle_deg:  -3.1}
 RF_3: {num: 6,  center: 306, range: 208, direction:  1, center_angle_deg: 121.8}
-LB_1: {num: 7,  center: 306, range:  98, direction:  1, center_angle_deg: -28.1}
+LB_1: {num: 7,  center: 306, range: 110, direction:  1, center_angle_deg: -67.0}
 LB_2: {num: 8,  center: 306, range: 238, direction:  1, center_angle_deg:  -4.6}
 LB_3: {num: 9,  center: 306, range: 220, direction:  1, center_angle_deg: -15.5}
-RB_1: {num: 10, center: 306, range: 122, direction:  1, center_angle_deg: -13.5}
+RB_1: {num: 10, center: 306, range: 110, direction:  1, center_angle_deg: -15.0}
 RB_2: {num: 11, center: 306, range: 244, direction:  1, center_angle_deg:  -4.5}
 RB_3: {num: 12, center: 306, range: 227, direction:  1, center_angle_deg:  -0.5}
 
