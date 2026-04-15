@@ -23,6 +23,6 @@ escape_pause_sec: 0.25
 stuck_cycles_threshold: 4
 turn_hold_cycles_threshold: 12
 
-random_turn_bias: 0.02
-side_balance_gain: 0.28
+random_turn_bias: 0.00
+side_balance_gain: 0.06
 bias_refresh_sec: 1.5

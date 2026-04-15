@@ -57,6 +57,8 @@ class LaserWanderExplorer(object):
         self.state = self.STOP
         self.state_until = rospy.Time(0)
         self.pause_until = rospy.Time(0)
+        # Match spotMicroKeyboardMove.py yaw convention:
+        # negative -> left turn, positive -> right turn.
         self.last_turn_sign = 1.0
         self.forward_bias = 0.0
         self.bias_refresh_at = rospy.Time.now()
@@ -147,9 +149,9 @@ class LaserWanderExplorer(object):
 
     def _choose_turn_sign(self, view):
         if view["left_med"] > view["right_med"]:
-            return 1.0
-        if view["right_med"] > view["left_med"]:
             return -1.0
+        if view["right_med"] > view["left_med"]:
+            return 1.0
         return self.last_turn_sign
 
     def _turn_hold_sec(self):
@@ -169,7 +171,7 @@ class LaserWanderExplorer(object):
             self.forward_bias = random.uniform(-self.random_turn_bias, self.random_turn_bias)
             self.bias_refresh_at = rospy.Time.now() + rospy.Duration(self.bias_refresh_sec)
 
-        balance = (view["left_med"] - view["right_med"]) * self.side_balance_gain
+        balance = (view["right_med"] - view["left_med"]) * self.side_balance_gain
         return self._clamp(balance + self.forward_bias, self.turn_speed * 0.35)
 
     def _forward_speed_cmd(self, view):
@@ -186,7 +188,7 @@ class LaserWanderExplorer(object):
 
     def _enter_turn_state(self, turn_sign):
         self.last_turn_sign = turn_sign
-        if turn_sign >= 0.0:
+        if turn_sign < 0.0:
             self._set_state(self.TURN_LEFT, self._turn_hold_sec())
         else:
             self._set_state(self.TURN_RIGHT, self._turn_hold_sec())
@@ -249,12 +251,12 @@ class LaserWanderExplorer(object):
                 output.linear.x = self._forward_speed_cmd(view)
                 output.angular.z = self._forward_bias_cmd(view)
             elif self.state == self.TURN_LEFT:
-                output.angular.z = abs(self.turn_speed)
-            elif self.state == self.TURN_RIGHT:
                 output.angular.z = -abs(self.turn_speed)
+            elif self.state == self.TURN_RIGHT:
+                output.angular.z = abs(self.turn_speed)
             elif self.state == self.ESCAPE:
                 if rospy.Time.now() >= self.pause_until:
-                    output.angular.z = abs(self.turn_speed) if self.last_turn_sign >= 0.0 else -abs(self.turn_speed)
+                    output.angular.z = abs(self.turn_speed) if self.last_turn_sign > 0.0 else -abs(self.turn_speed)
             else:
                 output = self._zero_cmd()
 

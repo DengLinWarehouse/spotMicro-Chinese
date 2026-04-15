@@ -54,7 +54,12 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     changeState(smmc, std::make_unique<SpotMicroTransitionStandState>());
 
   } else {
-    SpotMicroNodeConfig gait_smnc = buildAdaptiveGaitConfig(smnc_, cmd);
+    // NOTE(2026-04-15): Real robot tests show that changing cadence while
+    // ticks_ keeps accumulating can break gait phase continuity during
+    // obstacle turns. Keep the original adaptive path commented here for
+    // easy rollback after the issue is fully verified on hardware.
+    // SpotMicroNodeConfig gait_smnc = buildAdaptiveGaitConfig(smnc_, cmd);
+    SpotMicroNodeConfig gait_smnc = smnc_;
 
     // Update gate phasing data
     updatePhaseData(gait_smnc);
