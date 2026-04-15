@@ -32,6 +32,15 @@ class LaserWanderExplorer(object):
         self.forward_safe_dist = rospy.get_param("~forward_safe_dist", 0.60)
         self.turn_trigger_dist = rospy.get_param("~turn_trigger_dist", 0.42)
         self.turn_trigger_min_margin = rospy.get_param("~turn_trigger_min_margin", 0.10)
+        # Original logic entered TURN_* as soon as the current scan looked blocked.
+        # Keep the same distance trigger, but require a few consecutive blocked cycles
+        # before committing to a turn so scan jitter does not thrash the gait layer.
+        self.obstacle_confirm_cycles = int(rospy.get_param("~obstacle_confirm_cycles", 3))
+        # Recover from TURN_* only after a sustained clear view. This creates hysteresis
+        # between "enter turn" and "resume forward" so the robot does not bounce states.
+        self.clear_confirm_cycles = int(rospy.get_param("~clear_confirm_cycles", 6))
+        self.turn_release_dist = rospy.get_param("~turn_release_dist", 0.62)
+        self.turn_release_min_margin = rospy.get_param("~turn_release_min_margin", 0.08)
         self.stuck_dist = rospy.get_param("~stuck_dist", 0.30)
         self.stuck_side_dist = rospy.get_param("~stuck_side_dist", 0.28)
 
@@ -43,6 +52,9 @@ class LaserWanderExplorer(object):
 
         self.turn_duration_sec = rospy.get_param("~turn_duration_sec", 0.90)
         self.turn_duration_jitter_sec = rospy.get_param("~turn_duration_jitter_sec", 0.30)
+        # Even if the front briefly looks clear, keep a minimum turn commitment so the
+        # robot can finish a meaningful heading change before reconsidering FORWARD.
+        self.min_turn_commit_sec = rospy.get_param("~min_turn_commit_sec", 0.80)
         self.escape_turn_duration_sec = rospy.get_param("~escape_turn_duration_sec", 1.30)
         self.escape_pause_sec = rospy.get_param("~escape_pause_sec", 0.25)
         self.stuck_cycles_threshold = int(rospy.get_param("~stuck_cycles_threshold", 8))
@@ -63,6 +75,7 @@ class LaserWanderExplorer(object):
         self.forward_bias = 0.0
         self.bias_refresh_at = rospy.Time.now()
         self.blocked_cycles = 0
+        self.clear_cycles = 0
         self.turn_hold_cycles = 0
 
         self.pub = rospy.Publisher(self.output_topic, Twist, queue_size=1)
@@ -156,7 +169,7 @@ class LaserWanderExplorer(object):
 
     def _turn_hold_sec(self):
         jitter = random.uniform(-self.turn_duration_jitter_sec, self.turn_duration_jitter_sec)
-        return max(0.3, self.turn_duration_sec + jitter)
+        return max(self.min_turn_commit_sec, self.turn_duration_sec + jitter)
 
     @staticmethod
     def _clamp(value, limit):
@@ -185,6 +198,16 @@ class LaserWanderExplorer(object):
         ratio = (front - self.turn_trigger_dist) / span
         ratio = self._clamp(ratio, 1.0)
         return max(0.02, self.cruise_speed * ratio)
+
+    def _front_clear(self, view):
+        release_min = max(
+            self.turn_trigger_dist,
+            self.turn_release_dist - self.turn_release_min_margin,
+        )
+        return (
+            view["front_med"] >= self.turn_release_dist
+            and view["front_min"] >= release_min
+        )
 
     def _enter_turn_state(self, turn_sign):
         self.last_turn_sign = turn_sign
@@ -237,15 +260,45 @@ class LaserWanderExplorer(object):
             else:
                 self.blocked_cycles = 0
 
+            if self._front_clear(view):
+                self.clear_cycles += 1
+            else:
+                self.clear_cycles = 0
+
             if self.state in (self.TURN_LEFT, self.TURN_RIGHT, self.ESCAPE) and rospy.Time.now() < self.state_until:
                 pass
             elif escape_needed or self.blocked_cycles >= self.stuck_cycles_threshold or self.turn_hold_cycles >= self.turn_hold_cycles_threshold:
                 turn_sign = -self.last_turn_sign if self.last_turn_sign != 0.0 else self._choose_turn_sign(view)
                 self._enter_escape_state(turn_sign)
-            elif front_close:
-                self._enter_turn_state(self._choose_turn_sign(view))
             else:
-                self._set_state(self.FORWARD)
+                in_turn_state = self.state in (self.TURN_LEFT, self.TURN_RIGHT, self.ESCAPE)
+
+                # Original behavior:
+                #   elif front_close:
+                #       self._enter_turn_state(self._choose_turn_sign(view))
+                #   else:
+                #       self._set_state(self.FORWARD)
+                #
+                # Updated behavior:
+                #   - require sustained obstacle confirmation before entering TURN_*
+                #   - require sustained clearance before leaving TURN_*
+                #   - keep the current turn if the scan is still ambiguous
+                if in_turn_state:
+                    if self.clear_cycles >= self.clear_confirm_cycles:
+                        self._set_state(self.FORWARD)
+                    elif front_close and self.blocked_cycles >= self.obstacle_confirm_cycles:
+                        # Refresh the turn with the existing preferred sign so the
+                        # robot keeps rotating through ambiguous scan intervals.
+                        turn_sign = self.last_turn_sign if self.last_turn_sign != 0.0 else self._choose_turn_sign(view)
+                        if self.state == self.ESCAPE:
+                            self.last_turn_sign = turn_sign
+                            self._set_state(self.ESCAPE, self.escape_turn_duration_sec)
+                        else:
+                            self._enter_turn_state(turn_sign)
+                elif front_close and self.blocked_cycles >= self.obstacle_confirm_cycles:
+                    self._enter_turn_state(self._choose_turn_sign(view))
+                else:
+                    self._set_state(self.FORWARD)
 
             if self.state == self.FORWARD:
                 output.linear.x = self._forward_speed_cmd(view)

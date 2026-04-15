@@ -7,6 +7,14 @@ turn_speed: 0.18
 forward_safe_dist: 0.68
 turn_trigger_dist: 0.50
 turn_trigger_min_margin: 0.10
+# Original behavior switched to TURN_* as soon as one scan window looked blocked.
+# Keep the same trigger distance, but require several blocked cycles before turning.
+obstacle_confirm_cycles: 3
+# Resume FORWARD only after the front stays clear for multiple cycles.
+clear_confirm_cycles: 6
+# Use a wider release distance than the entry distance to create hysteresis.
+turn_release_dist: 0.62
+turn_release_min_margin: 0.08
 stuck_dist: 0.30
 stuck_side_dist: 0.28
 
@@ -18,6 +26,9 @@ front_right_max_deg: -20.0
 
 turn_duration_sec: 1.10
 turn_duration_jitter_sec: 0.20
+# Keep a minimum turn commitment so the robot does not abandon a heading change
+# after a single optimistic scan frame.
+min_turn_commit_sec: 0.80
 escape_turn_duration_sec: 1.40
 escape_pause_sec: 0.25
 stuck_cycles_threshold: 4
