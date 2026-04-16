@@ -1,0 +1,45 @@
+dry_run: true
+health_poll_hz: 2.0
+manual_input_timeout_sec: 0.6
+session_timeout_sec: 2.0
+
+http_server:
+  enabled: true
+  host: 0.0.0.0
+  port: 8765
+
+http_server:
+  enabled: true
+  host: 0.0.0.0
+  port: 8765
+
+topics:
+  stand_topic: /stand_cmd
+  walk_topic: /walk_cmd
+  idle_topic: /idle_cmd
+  enable_topic: /spot_micro/auto_mode/enable
+  stop_topic: /spot_micro/auto_explore/stop
+  manual_cmd_topic: /cmd_vel_manual
+  auto_cmd_topic: /cmd_vel_auto
+  cmd_vel_topic: /cmd_vel
+  cmd_vel_source_topic: /spot_micro/cmd_vel_arbiter/source
+  map_topic: /map
+
+lifecycle:
+  startup_idle_enabled: true
+  startup_idle_delay_sec: 0.30
+  startup_stand_delay_sec: 1.80
+  startup_walk_delay_sec: 1.60
+  startup_auto_enable_delay_sec: 0.80
+  startup_zero_cmd_duration_sec: 0.80
+  shutdown_zero_cmd_duration_sec: 1.00
+  shutdown_stand_hold_sec: 1.20
+  pulse_count: 3
+  pulse_interval_sec: 0.20
+  estop_zero_cmd_duration_sec: 0.40
+
+manual_control:
+  speed_levels_mps: [0.0, 0.03, 0.06, 0.09, 0.12]
+  turn_rate_max_rad_s: 0.18
+  direction_deadband: 0.15
+  turn_deadband: 0.12

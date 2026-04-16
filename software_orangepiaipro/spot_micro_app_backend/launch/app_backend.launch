@@ -1,0 +1,10 @@
+<launch>
+  <arg name="config_file" default="$(find spot_micro_app_backend)/config/backend_runtime.yaml" />
+
+  <node pkg="spot_micro_app_backend"
+        type="spot_micro_app_backend_node.py"
+        name="spot_micro_app_backend"
+        output="screen">
+    <rosparam command="load" file="$(arg config_file)" />
+  </node>
+</launch>

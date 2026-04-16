@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SpotMicro Demo Console</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SpotMicro Application Layer</p>
+          <h1>Demo Console</h1>
+        </div>
+        <div class="topbar-meta">
+          <span id="backend-pill" class="pill pill-muted">Backend unknown</span>
+          <span id="ros-pill" class="pill pill-muted">ROS unknown</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="rail rail-left">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>System status</h2>
+              <button id="refresh-status" class="text-button" type="button">Refresh</button>
+            </div>
+            <dl class="status-list">
+              <div><dt>Runtime</dt><dd id="runtime-state">-</dd></div>
+              <div><dt>Mode</dt><dd id="selected-mode">-</dd></div>
+              <div><dt>Armed</dt><dd id="armed-state">-</dd></div>
+              <div><dt>E-stop</dt><dd id="estop-state">-</dd></div>
+              <div><dt>Fault</dt><dd id="fault-state">-</dd></div>
+              <div><dt>Control source</dt><dd id="control-source">-</dd></div>
+              <div><dt>Speed level</dt><dd id="speed-level-label">0</dd></div>
+              <div><dt>Map</dt><dd id="selected-map-name">No map selected</dd></div>
+            </dl>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Mode select</h2>
+              <span class="panel-caption">Request only. Backend decides the real state.</span>
+            </div>
+            <div class="mode-grid">
+              <button class="mode-button" data-mode="MANUAL" type="button">Manual</button>
+              <button class="mode-button" data-mode="MANUAL_MAPPING" type="button">Manual mapping</button>
+              <button class="mode-button" data-mode="AUTO_EXPLORE_MAPPING" type="button">Auto explore</button>
+              <button class="mode-button" data-mode="AUTO_PATROL" type="button">Auto patrol</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Actions</h2>
+              <span class="panel-caption">High-risk controls</span>
+            </div>
+            <div class="action-stack">
+              <button id="start-button" class="action-button action-start" type="button">Start / Arm</button>
+              <button id="safe-stop-button" class="action-button action-stop" type="button">Safe stop</button>
+              <button id="estop-button" class="action-button action-danger" type="button">E-stop</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="center-stage">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">Frontend phase 1</p>
+              <h2>Minimal live page for backend and ROS verification.</h2>
+              <p>
+                This page is intentionally spare. It validates state sync, control actions, joystick intent,
+                and map-preview plumbing before the full interface is designed.
+              </p>
+            </div>
+            <div class="hero-detail">
+              <div class="metric">
+                <span>Last update</span>
+                <strong id="last-update-label">-</strong>
+              </div>
+              <div class="metric">
+                <span>Last action</span>
+                <strong id="last-action-label">-</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-stage">
+            <section class="panel joystick-panel">
+              <div class="panel-head">
+                <h2>Joystick</h2>
+                <span class="panel-caption">Direction + turn intent. No strafe. Speed is separate.</span>
+              </div>
+              <div class="speed-row">
+                <button id="speed-down" class="speed-button" type="button">-</button>
+                <div class="speed-readout">
+                  <span>Speed level</span>
+                  <strong id="speed-level-display">0</strong>
+                </div>
+                <button id="speed-up" class="speed-button" type="button">+</button>
+              </div>
+              <div class="joystick-wrap">
+                <div id="joystick-base" class="joystick-base">
+                  <div id="joystick-stick" class="joystick-stick"></div>
+                </div>
+              </div>
+              <div class="joystick-readout">
+                <div><span>Forward axis</span><strong id="forward-axis-label">0.00</strong></div>
+                <div><span>Turn axis</span><strong id="turn-axis-label">0.00</strong></div>
+              </div>
+            </section>
+
+            <section class="panel map-panel">
+              <div class="panel-head">
+                <h2>Map preview</h2>
+                <span id="map-preview-meta" class="panel-caption">Waiting for backend preview</span>
+              </div>
+              <div class="preview-frame">
+                <img id="map-preview-image" alt="Map preview" src="/api/map-preview" />
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="rail rail-right">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Request feedback</h2>
+              <span class="panel-caption">Backend responses only</span>
+            </div>
+            <div class="feedback-card">
+              <p id="request-feedback" class="feedback-text">No requests yet.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Maps</h2>
+              <span class="panel-caption">Current backend list</span>
+            </div>
+            <ul id="maps-list" class="maps-list">
+              <li>No maps registered</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Notes</h2>
+            </div>
+            <ul class="notes-list">
+              <li>Refreshes state on a short poll cycle.</li>
+              <li>Pings the backend session heartbeat continuously.</li>
+              <li>Shows a preview placeholder until real map previews are wired in.</li>
+              <li>Keeps product styling light; this is not the final UI.</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
