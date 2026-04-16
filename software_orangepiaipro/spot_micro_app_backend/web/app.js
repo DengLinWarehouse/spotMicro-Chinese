@@ -58,7 +58,7 @@
         renderStatus(payload.status);
       }
     } catch (error) {
-      setFeedback("Status load failed: " + error.message);
+      setFeedback("状态加载失败: " + error.message);
     }
   }
 
@@ -69,7 +69,7 @@
         body: JSON.stringify({ session_id: sessionId }),
       });
     } catch (error) {
-      setFeedback("Session ping failed: " + error.message);
+      setFeedback("会话心跳失败: " + error.message);
     }
   }
 
@@ -81,7 +81,7 @@
       stateEls.mapsList.innerHTML = "";
       if (!maps.length) {
         const li = document.createElement("li");
-        li.textContent = "No maps registered";
+        li.textContent = "暂无已注册地图";
         stateEls.mapsList.appendChild(li);
         return;
       }
@@ -91,7 +91,7 @@
         stateEls.mapsList.appendChild(li);
       });
     } catch (error) {
-      setFeedback("Map list load failed: " + error.message);
+      setFeedback("地图列表加载失败: " + error.message);
     }
   }
 
@@ -99,23 +99,23 @@
     currentStatus = status;
     stateEls.runtimeState.textContent = status.runtime_state;
     stateEls.selectedMode.textContent = status.selected_mode;
-    stateEls.armedState.textContent = status.armed ? "Yes" : "No";
-    stateEls.estopState.textContent = status.estop_latched ? "Latched" : "Clear";
-    stateEls.faultState.textContent = status.fault_active ? status.fault_reason || "Active" : "None";
+    stateEls.armedState.textContent = status.armed ? "是" : "否";
+    stateEls.estopState.textContent = status.estop_latched ? "已锁定" : "未锁定";
+    stateEls.faultState.textContent = status.fault_active ? status.fault_reason || "故障激活" : "无";
     stateEls.controlSource.textContent = status.current_control_source;
     stateEls.selectedMapName.textContent =
-      (status.selected_map && status.selected_map.display_name) || "No map selected";
+      (status.selected_map && status.selected_map.display_name) || "未选择地图";
     stateEls.speedLevelLabel.textContent = String(status.speed_level);
     stateEls.speedLevelDisplay.textContent = String(status.speed_level);
     stateEls.lastUpdateLabel.textContent = humanNow();
     stateEls.lastActionLabel.textContent =
       status.last_action && status.last_action.action
         ? status.last_action.action + " · " + (status.last_action.code || "")
-        : "No action yet";
+        : "暂无动作";
 
-    stateEls.backendPill.textContent = "Backend online";
+    stateEls.backendPill.textContent = "后端在线";
     stateEls.backendPill.className = "pill pill-ok";
-    stateEls.rosPill.textContent = status.ros_connected ? "ROS connected" : "ROS disconnected";
+    stateEls.rosPill.textContent = status.ros_connected ? "ROS 已连接" : "ROS 未连接";
     stateEls.rosPill.className = "pill " + (status.ros_connected ? "pill-ok" : "pill-danger");
 
     document.querySelectorAll(".mode-button").forEach((button) => {
@@ -124,16 +124,16 @@
 
     const previewMode = ["MANUAL_MAPPING", "AUTO_EXPLORE_MAPPING", "AUTO_PATROL"].includes(status.selected_mode);
     stateEls.mapPreviewMeta.textContent = previewMode
-      ? "Preview refreshed " + humanNow()
-      : "Preview kept visible here for plumbing checks";
+      ? "预览已刷新 " + humanNow()
+      : "当前模式正式版可隐藏，这里保留仅用于联调验证";
 
     if (status.last_action) {
       setFeedback(
         [
-          "Action: " + status.last_action.action,
-          "Accepted: " + String(status.last_action.accepted),
-          "Code: " + status.last_action.code,
-          "Message: " + status.last_action.message,
+          "动作: " + status.last_action.action,
+          "接受: " + String(status.last_action.accepted),
+          "代码: " + status.last_action.code,
+          "消息: " + status.last_action.message,
         ].join("\n")
       );
     }
@@ -148,7 +148,7 @@
       if (payload.status) renderStatus(payload.status);
       setFeedback(JSON.stringify(payload, null, 2));
     } catch (error) {
-      setFeedback("Mode request failed: " + error.message);
+      setFeedback("模式请求失败: " + error.message);
     }
   }
 
@@ -161,7 +161,7 @@
       if (payload.status) renderStatus(payload.status);
       setFeedback(JSON.stringify(payload, null, 2));
     } catch (error) {
-      setFeedback("Action request failed: " + error.message);
+      setFeedback("动作请求失败: " + error.message);
     }
   }
 
@@ -174,7 +174,7 @@
       if (payload.status) renderStatus(payload.status);
       setFeedback(JSON.stringify(payload, null, 2));
     } catch (error) {
-      setFeedback("Speed update failed: " + error.message);
+      setFeedback("速度档位更新失败: " + error.message);
     }
   }
 
@@ -193,7 +193,7 @@
       });
       if (payload.status) renderStatus(payload.status);
     } catch (error) {
-      setFeedback("Manual intent failed: " + error.message);
+      setFeedback("手动摇杆请求失败: " + error.message);
     }
   }
 

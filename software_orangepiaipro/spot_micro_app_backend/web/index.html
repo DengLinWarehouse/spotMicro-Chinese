@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SpotMicro Demo Console</title>
+    <title>SpotMicro 联调控制台</title>
     <link rel="stylesheet" href="/app.css" />
   </head>
   <body>
     <div class="shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">SpotMicro Application Layer</p>
-          <h1>Demo Console</h1>
+          <p class="eyebrow">SpotMicro 应用层</p>
+          <h1>联调控制台</h1>
         </div>
         <div class="topbar-meta">
-          <span id="backend-pill" class="pill pill-muted">Backend unknown</span>
-          <span id="ros-pill" class="pill pill-muted">ROS unknown</span>
+          <span id="backend-pill" class="pill pill-muted">后端状态未知</span>
+          <span id="ros-pill" class="pill pill-muted">ROS 状态未知</span>
         </div>
       </header>
 
@@ -23,43 +23,43 @@
         <section class="rail rail-left">
           <div class="panel">
             <div class="panel-head">
-              <h2>System status</h2>
-              <button id="refresh-status" class="text-button" type="button">Refresh</button>
+              <h2>系统状态</h2>
+              <button id="refresh-status" class="text-button" type="button">刷新</button>
             </div>
             <dl class="status-list">
-              <div><dt>Runtime</dt><dd id="runtime-state">-</dd></div>
-              <div><dt>Mode</dt><dd id="selected-mode">-</dd></div>
-              <div><dt>Armed</dt><dd id="armed-state">-</dd></div>
-              <div><dt>E-stop</dt><dd id="estop-state">-</dd></div>
-              <div><dt>Fault</dt><dd id="fault-state">-</dd></div>
-              <div><dt>Control source</dt><dd id="control-source">-</dd></div>
-              <div><dt>Speed level</dt><dd id="speed-level-label">0</dd></div>
-              <div><dt>Map</dt><dd id="selected-map-name">No map selected</dd></div>
+              <div><dt>运行状态</dt><dd id="runtime-state">-</dd></div>
+              <div><dt>当前模式</dt><dd id="selected-mode">-</dd></div>
+              <div><dt>已使能</dt><dd id="armed-state">-</dd></div>
+              <div><dt>急停</dt><dd id="estop-state">-</dd></div>
+              <div><dt>故障</dt><dd id="fault-state">-</dd></div>
+              <div><dt>控制源</dt><dd id="control-source">-</dd></div>
+              <div><dt>速度档位</dt><dd id="speed-level-label">0</dd></div>
+              <div><dt>地图</dt><dd id="selected-map-name">未选择地图</dd></div>
             </dl>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <h2>Mode select</h2>
-              <span class="panel-caption">Request only. Backend decides the real state.</span>
+              <h2>模式切换</h2>
+              <span class="panel-caption">这里只发请求，实际状态以后端真值为准。</span>
             </div>
             <div class="mode-grid">
-              <button class="mode-button" data-mode="MANUAL" type="button">Manual</button>
-              <button class="mode-button" data-mode="MANUAL_MAPPING" type="button">Manual mapping</button>
-              <button class="mode-button" data-mode="AUTO_EXPLORE_MAPPING" type="button">Auto explore</button>
-              <button class="mode-button" data-mode="AUTO_PATROL" type="button">Auto patrol</button>
+              <button class="mode-button" data-mode="MANUAL" type="button">手动控制</button>
+              <button class="mode-button" data-mode="MANUAL_MAPPING" type="button">手动建图</button>
+              <button class="mode-button" data-mode="AUTO_EXPLORE_MAPPING" type="button">自动探索建图</button>
+              <button class="mode-button" data-mode="AUTO_PATROL" type="button">自动巡航</button>
             </div>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <h2>Actions</h2>
-              <span class="panel-caption">High-risk controls</span>
+              <h2>动作控制</h2>
+              <span class="panel-caption">高风险动作区</span>
             </div>
             <div class="action-stack">
-              <button id="start-button" class="action-button action-start" type="button">Start / Arm</button>
-              <button id="safe-stop-button" class="action-button action-stop" type="button">Safe stop</button>
-              <button id="estop-button" class="action-button action-danger" type="button">E-stop</button>
+              <button id="start-button" class="action-button action-start" type="button">开始 / 使能</button>
+              <button id="safe-stop-button" class="action-button action-stop" type="button">安全收车</button>
+              <button id="estop-button" class="action-button action-danger" type="button">急停</button>
             </div>
           </div>
         </section>
@@ -67,20 +67,20 @@
         <section class="center-stage">
           <div class="hero-panel">
             <div class="hero-copy">
-              <p class="eyebrow">Frontend phase 1</p>
-              <h2>Minimal live page for backend and ROS verification.</h2>
+              <p class="eyebrow">前端第一阶段</p>
+              <h2>用于验证后端与 ROS 链路的最小联调页面。</h2>
               <p>
-                This page is intentionally spare. It validates state sync, control actions, joystick intent,
-                and map-preview plumbing before the full interface is designed.
+                这个页面刻意保持克制，只承担状态同步、动作触发、摇杆意图和地图预览链路验证，
+                在完整界面开发之前先把前后端闭环跑通。
               </p>
             </div>
             <div class="hero-detail">
               <div class="metric">
-                <span>Last update</span>
+                <span>最近更新</span>
                 <strong id="last-update-label">-</strong>
               </div>
               <div class="metric">
-                <span>Last action</span>
+                <span>最近动作</span>
                 <strong id="last-action-label">-</strong>
               </div>
             </div>
@@ -89,13 +89,13 @@
           <div class="grid-stage">
             <section class="panel joystick-panel">
               <div class="panel-head">
-                <h2>Joystick</h2>
-                <span class="panel-caption">Direction + turn intent. No strafe. Speed is separate.</span>
+                <h2>虚拟摇杆</h2>
+                <span class="panel-caption">只表达方向与转向意图，不支持横移，速度独立控制。</span>
               </div>
               <div class="speed-row">
                 <button id="speed-down" class="speed-button" type="button">-</button>
                 <div class="speed-readout">
-                  <span>Speed level</span>
+                  <span>速度档位</span>
                   <strong id="speed-level-display">0</strong>
                 </div>
                 <button id="speed-up" class="speed-button" type="button">+</button>
@@ -106,18 +106,18 @@
                 </div>
               </div>
               <div class="joystick-readout">
-                <div><span>Forward axis</span><strong id="forward-axis-label">0.00</strong></div>
-                <div><span>Turn axis</span><strong id="turn-axis-label">0.00</strong></div>
+                <div><span>前后轴</span><strong id="forward-axis-label">0.00</strong></div>
+                <div><span>转向轴</span><strong id="turn-axis-label">0.00</strong></div>
               </div>
             </section>
 
             <section class="panel map-panel">
               <div class="panel-head">
-                <h2>Map preview</h2>
-                <span id="map-preview-meta" class="panel-caption">Waiting for backend preview</span>
+                <h2>地图预览</h2>
+                <span id="map-preview-meta" class="panel-caption">等待后端预览数据</span>
               </div>
               <div class="preview-frame">
-                <img id="map-preview-image" alt="Map preview" src="/api/map-preview" />
+                <img id="map-preview-image" alt="地图预览" src="/api/map-preview" />
               </div>
             </section>
           </div>
@@ -126,33 +126,33 @@
         <section class="rail rail-right">
           <div class="panel">
             <div class="panel-head">
-              <h2>Request feedback</h2>
-              <span class="panel-caption">Backend responses only</span>
+              <h2>请求反馈</h2>
+              <span class="panel-caption">只显示后端返回结果</span>
             </div>
             <div class="feedback-card">
-              <p id="request-feedback" class="feedback-text">No requests yet.</p>
+              <p id="request-feedback" class="feedback-text">暂时还没有请求。</p>
             </div>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <h2>Maps</h2>
-              <span class="panel-caption">Current backend list</span>
+              <h2>地图列表</h2>
+              <span class="panel-caption">当前后端地图清单</span>
             </div>
             <ul id="maps-list" class="maps-list">
-              <li>No maps registered</li>
+              <li>暂无已注册地图</li>
             </ul>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <h2>Notes</h2>
+              <h2>说明</h2>
             </div>
             <ul class="notes-list">
-              <li>Refreshes state on a short poll cycle.</li>
-              <li>Pings the backend session heartbeat continuously.</li>
-              <li>Shows a preview placeholder until real map previews are wired in.</li>
-              <li>Keeps product styling light; this is not the final UI.</li>
+              <li>状态通过短周期轮询刷新。</li>
+              <li>页面会持续上报会话心跳给后端。</li>
+              <li>在真实地图预览接入前，这里先显示占位图。</li>
+              <li>当前样式刻意保持轻量，这不是最终正式界面。</li>
             </ul>
           </div>
         </section>

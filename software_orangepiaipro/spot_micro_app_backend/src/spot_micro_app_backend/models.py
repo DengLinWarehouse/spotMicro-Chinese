@@ -35,7 +35,6 @@ class ActionType(str, Enum):
     MANUAL_INTENT = "MANUAL_INTENT"
     SELECT_MODE = "SELECT_MODE"
     SET_SPEED_LEVEL = "SET_SPEED_LEVEL"
-    SET_SPEED_LEVEL = "SET_SPEED_LEVEL"
 
 
 class ControlSource(str, Enum):

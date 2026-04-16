@@ -10,6 +10,7 @@ PACKAGES=(
   lcd_monitor
   ros-i2cpwmboard
   servo_move_keyboard
+  spot_micro_app_backend
   spot_micro_joy
   spot_micro_keyboard_command
   spot_micro_launch

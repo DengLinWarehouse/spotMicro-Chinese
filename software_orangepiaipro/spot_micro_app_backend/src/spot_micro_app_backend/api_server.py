@@ -149,7 +149,7 @@ class BackendHttpServer(object):
             def _map_preview_response(self):
                 status = backend.get_status()
                 selected_map = status.get("selected_map", {}) or {}
-                map_name = selected_map.get("display_name") or "No map selected"
+                map_name = selected_map.get("display_name") or "未选择地图"
                 mode = status.get("selected_mode", "UNKNOWN")
                 state = status.get("runtime_state", "UNKNOWN")
                 fault_reason = status.get("fault_reason") or ""
@@ -157,11 +157,11 @@ class BackendHttpServer(object):
                 if preview_path and os.path.isfile(preview_path):
                     return self._serve_binary_file(preview_path, self._guess_mime(preview_path))
 
-                subtitle = "Preview placeholder"
+                subtitle = "预览占位图"
                 if fault_reason:
-                    subtitle = "Fault: %s" % fault_reason
+                    subtitle = "故障: %s" % fault_reason
                 elif state == "ESTOP_LATCHED":
-                    subtitle = "Emergency stop latched"
+                    subtitle = "急停已锁定"
 
                 svg = self._build_preview_svg(mode, state, map_name, subtitle)
                 body = svg.encode("utf-8")
@@ -193,15 +193,15 @@ class BackendHttpServer(object):
   <circle cx="735" cy="140" r="90" fill="#ca5c36" opacity="0.14"/>
   <circle cx="220" cy="470" r="130" fill="#1f2428" opacity="0.06"/>
   <rect x="88" y="84" width="784" height="472" rx="28" fill="#fffaf3" stroke="#d8ccbd" stroke-width="2"/>
-  <text x="128" y="168" fill="#1d2329" font-size="34" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">SpotMicro map preview</text>
-  <text x="128" y="214" fill="#6d5f53" font-size="20" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">This placeholder confirms the preview pipeline before real map images are wired in.</text>
-  <text x="128" y="320" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">Mode</text>
+  <text x="128" y="168" fill="#1d2329" font-size="34" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">SpotMicro 地图预览</text>
+  <text x="128" y="214" fill="#6d5f53" font-size="20" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">在真实地图图片链路接入之前，这张占位图用于验证预览通路。</text>
+  <text x="128" y="320" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">当前模式</text>
   <text x="128" y="354" fill="#22292f" font-size="32" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">""" + safe_mode + """</text>
-  <text x="128" y="428" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">Runtime state</text>
+  <text x="128" y="428" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">运行状态</text>
   <text x="128" y="462" fill="#22292f" font-size="32" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">""" + safe_state + """</text>
-  <text x="500" y="320" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">Selected map</text>
+  <text x="500" y="320" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">当前地图</text>
   <text x="500" y="354" fill="#22292f" font-size="32" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">""" + safe_map + """</text>
-  <text x="500" y="428" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">Status</text>
+  <text x="500" y="428" fill="#8a7767" font-size="16" font-family="'Segoe UI Variable','Trebuchet MS','Noto Sans SC',sans-serif">说明</text>
   <text x="500" y="462" fill="#22292f" font-size="28" font-family="'Segoe UI Variable','Trebuchet MS',sans-serif">""" + safe_subtitle + """</text>
 </svg>"""
 
