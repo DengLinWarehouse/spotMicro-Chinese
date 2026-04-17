@@ -45,6 +45,10 @@ class ManualControlConfig:
     turn_rate_max_rad_s: float = 0.18
     direction_deadband: float = 0.15
     turn_deadband: float = 0.12
+    forward_smoothing_tau_sec: float = 0.18
+    turn_smoothing_tau_sec: float = 0.28
+    linear_accel_limit_mps2: float = 0.22
+    angular_accel_limit_rad_s2: float = 0.80
     direct_cmd_vel_bridge_enabled: bool = True
     direct_cmd_vel_bridge_modes: tuple = ("MANUAL", "MANUAL_MAPPING")
 
@@ -178,10 +182,47 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
         self._source_sub = rospy.Subscriber(
             self._topics.cmd_vel_source_topic, String, self._source_cb, queue_size=1
         )
+        self._last_manual_twist = Twist()
+        self._last_manual_publish_at = time.time()
 
     def _source_cb(self, msg: String):
         self._last_cmd_vel_source = msg.data
         self._last_cmd_vel_source_at = time.time()
+
+    def _reset_manual_command_filter(self):
+        self._last_manual_twist = Twist()
+        self._last_manual_publish_at = time.time()
+
+    @staticmethod
+    def _apply_deadband_curve(value: float, deadband: float) -> float:
+        magnitude = abs(float(value))
+        deadband = max(float(deadband), 0.0)
+        if magnitude <= deadband:
+            return 0.0
+        if deadband >= 0.999:
+            return 0.0
+        scaled = (magnitude - deadband) / (1.0 - deadband)
+        return max(min(scaled, 1.0), 0.0) * (1.0 if value >= 0.0 else -1.0)
+
+    @staticmethod
+    def _clamp_rate(current: float, target: float, rate_limit: float, dt: float) -> float:
+        if rate_limit <= 0.0 or dt <= 0.0:
+            return target
+        max_delta = rate_limit * dt
+        delta = target - current
+        if delta > max_delta:
+            return current + max_delta
+        if delta < -max_delta:
+            return current - max_delta
+        return target
+
+    def _smooth_manual_value(self, current: float, target: float, tau: float, rate_limit: float, dt: float) -> float:
+        if dt <= 0.0:
+            return target
+        tau = max(float(tau), 0.0)
+        alpha = 1.0 if tau <= 1e-6 else max(min(dt / (tau + dt), 1.0), 0.0)
+        filtered = current + alpha * (target - current)
+        return self._clamp_rate(current, filtered, float(rate_limit), dt)
 
     def probe_health(self) -> RuntimeHealth:
         try:
@@ -205,6 +246,7 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
         return RuntimeHealth(connected=True, mode="live", message=source_msg)
 
     def request_start(self, mode: ControlMode) -> ActionResult:
+        self._reset_manual_command_filter()
         self._set_auto_enabled(False)
         self._request_stop(True)
         self._publish_zero_cmds(self._lifecycle.startup_zero_cmd_duration_sec)
@@ -235,12 +277,14 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
         return ActionResult(ActionType.START, True, "ros_ok", "start sequence completed", {"mode": mode.value})
 
     def request_estop(self) -> ActionResult:
+        self._reset_manual_command_filter()
         self._set_auto_enabled(False)
         self._request_stop(True)
         self._publish_zero_cmds(self._lifecycle.estop_zero_cmd_duration_sec)
         return ActionResult(ActionType.ESTOP, True, "ros_ok", "software estop sequence completed")
 
     def request_safe_stop(self) -> ActionResult:
+        self._reset_manual_command_filter()
         self._set_auto_enabled(False)
         self._request_stop(True)
         self._publish_zero_cmds(self._lifecycle.shutdown_zero_cmd_duration_sec)
@@ -252,22 +296,38 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
         return ActionResult(ActionType.SAFE_STOP, True, "ros_ok", "safe stop sequence completed")
 
     def publish_manual_intent(self, intent: ManualIntent, speed_level: int, mode: ControlMode) -> ActionResult:
-        twist = Twist()
+        target = Twist()
         speed_levels = list(self._manual_control.speed_levels_mps)
         if not speed_levels:
             speed_levels = [0.0]
         speed_level = max(0, min(int(speed_level), len(speed_levels) - 1))
         selected_speed = float(speed_levels[speed_level])
 
-        if intent.forward_axis > self._manual_control.direction_deadband:
-            twist.linear.x = selected_speed
-        elif intent.forward_axis < -self._manual_control.direction_deadband:
-            twist.linear.x = -selected_speed
+        forward_axis = self._apply_deadband_curve(intent.forward_axis, self._manual_control.direction_deadband)
+        turn_axis = self._apply_deadband_curve(intent.turn_axis, self._manual_control.turn_deadband)
 
-        if intent.turn_axis > self._manual_control.turn_deadband:
-            twist.angular.z = self._manual_control.turn_rate_max_rad_s * min(abs(intent.turn_axis), 1.0)
-        elif intent.turn_axis < -self._manual_control.turn_deadband:
-            twist.angular.z = -self._manual_control.turn_rate_max_rad_s * min(abs(intent.turn_axis), 1.0)
+        target.linear.x = selected_speed * forward_axis
+        target.angular.z = self._manual_control.turn_rate_max_rad_s * turn_axis
+
+        now = time.time()
+        dt = max(now - self._last_manual_publish_at, 1e-3)
+        twist = Twist()
+        twist.linear.x = self._smooth_manual_value(
+            self._last_manual_twist.linear.x,
+            target.linear.x,
+            self._manual_control.forward_smoothing_tau_sec,
+            self._manual_control.linear_accel_limit_mps2,
+            dt,
+        )
+        twist.angular.z = self._smooth_manual_value(
+            self._last_manual_twist.angular.z,
+            target.angular.z,
+            self._manual_control.turn_smoothing_tau_sec,
+            self._manual_control.angular_accel_limit_rad_s2,
+            dt,
+        )
+        self._last_manual_twist = twist
+        self._last_manual_publish_at = now
 
         self._manual_pub.publish(twist)
         bridged_to_cmd_vel = False
@@ -277,6 +337,8 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
             self._cmd_vel_pub.publish(twist)
             bridged_to_cmd_vel = True
         details = {
+            "target_linear_x": "%.3f" % target.linear.x,
+            "target_angular_z": "%.3f" % target.angular.z,
             "linear_x": "%.3f" % twist.linear.x,
             "angular_z": "%.3f" % twist.angular.z,
             "speed_level": str(speed_level),
@@ -312,6 +374,7 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
                 rospy.sleep(interval_sec)
 
     def _publish_zero_cmds(self, duration_sec: float):
+        self._reset_manual_command_filter()
         end_at = time.time() + max(duration_sec, 0.0)
         zero = Twist()
         while time.time() < end_at and not rospy.is_shutdown():

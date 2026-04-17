@@ -478,13 +478,13 @@ void SpotMicroMotionCmd::angleCommandCallback(
 
 void SpotMicroMotionCmd::velCommandCallback(
     const geometry_msgs::TwistConstPtr& msg) {
-  cmd_.x_vel_cmd_mps_ = std::clamp(msg->linear.x,
+  cmd_.x_vel_cmd_mps_ = std::clamp(static_cast<float>(msg->linear.x),
                                    -smnc_.max_fwd_velocity,
                                    smnc_.max_fwd_velocity);
-  cmd_.y_vel_cmd_mps_ = std::clamp(msg->linear.y,
+  cmd_.y_vel_cmd_mps_ = std::clamp(static_cast<float>(msg->linear.y),
                                    -smnc_.max_side_velocity,
                                    smnc_.max_side_velocity);
-  cmd_.yaw_rate_cmd_rps_ = std::clamp(msg->angular.z,
+  cmd_.yaw_rate_cmd_rps_ = std::clamp(static_cast<float>(msg->angular.z),
                                       -smnc_.max_yaw_rate,
                                       smnc_.max_yaw_rate);
 }
