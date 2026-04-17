@@ -8,11 +8,6 @@ http_server:
   host: 0.0.0.0
   port: 8765
 
-http_server:
-  enabled: true
-  host: 0.0.0.0
-  port: 8765
-
 topics:
   stand_topic: /stand_cmd
   walk_topic: /walk_cmd
@@ -43,3 +38,5 @@ manual_control:
   turn_rate_max_rad_s: 0.18
   direction_deadband: 0.15
   turn_deadband: 0.12
+  direct_cmd_vel_bridge_enabled: true
+  direct_cmd_vel_bridge_modes: [MANUAL, MANUAL_MAPPING]

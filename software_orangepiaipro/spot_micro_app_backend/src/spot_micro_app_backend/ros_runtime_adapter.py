@@ -45,6 +45,8 @@ class ManualControlConfig:
     turn_rate_max_rad_s: float = 0.18
     direction_deadband: float = 0.15
     turn_deadband: float = 0.12
+    direct_cmd_vel_bridge_enabled: bool = True
+    direct_cmd_vel_bridge_modes: tuple = ("MANUAL", "MANUAL_MAPPING")
 
 
 @dataclass(frozen=True)
@@ -71,7 +73,7 @@ class RosRuntimeAdapter(object):
     def request_safe_stop(self) -> ActionResult:
         raise NotImplementedError
 
-    def publish_manual_intent(self, intent: ManualIntent, speed_level: int) -> ActionResult:
+    def publish_manual_intent(self, intent: ManualIntent, speed_level: int, mode: ControlMode) -> ActionResult:
         raise NotImplementedError
 
 
@@ -103,12 +105,13 @@ class DryRunRosRuntimeAdapter(RosRuntimeAdapter):
             ActionType.SAFE_STOP, False, "not_implemented", "live ROS safe-stop path is not implemented yet"
         )
 
-    def publish_manual_intent(self, intent: ManualIntent, speed_level: int) -> ActionResult:
+    def publish_manual_intent(self, intent: ManualIntent, speed_level: int, mode: ControlMode) -> ActionResult:
         if self._config.dry_run:
             details = {
                 "forward_axis": str(intent.forward_axis),
                 "turn_axis": str(intent.turn_axis),
                 "speed_level": str(speed_level),
+                "mode": mode.value,
             }
             return ActionResult(
                 ActionType.MANUAL_INTENT, True, "dry_run_ok", "manual intent accepted in dry-run mode", details=details
@@ -210,7 +213,7 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
         self._publish_zero_cmds(0.20)
         return ActionResult(ActionType.SAFE_STOP, True, "ros_ok", "safe stop sequence completed")
 
-    def publish_manual_intent(self, intent: ManualIntent, speed_level: int) -> ActionResult:
+    def publish_manual_intent(self, intent: ManualIntent, speed_level: int, mode: ControlMode) -> ActionResult:
         twist = Twist()
         speed_levels = list(self._manual_control.speed_levels_mps)
         if not speed_levels:
@@ -229,10 +232,18 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
             twist.angular.z = -self._manual_control.turn_rate_max_rad_s * min(abs(intent.turn_axis), 1.0)
 
         self._manual_pub.publish(twist)
+        bridged_to_cmd_vel = False
+        if self._manual_control.direct_cmd_vel_bridge_enabled and mode.value in set(
+            self._manual_control.direct_cmd_vel_bridge_modes
+        ):
+            self._cmd_vel_pub.publish(twist)
+            bridged_to_cmd_vel = True
         details = {
             "linear_x": "%.3f" % twist.linear.x,
             "angular_z": "%.3f" % twist.angular.z,
             "speed_level": str(speed_level),
+            "mode": mode.value,
+            "bridged_to_cmd_vel": str(bridged_to_cmd_vel).lower(),
         }
         return ActionResult(ActionType.MANUAL_INTENT, True, "ros_ok", "manual intent published", details)
 

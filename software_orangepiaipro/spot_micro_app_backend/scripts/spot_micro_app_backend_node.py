@@ -46,6 +46,10 @@ class SpotMicroAppBackendNode(object):
             turn_rate_max_rad_s=rospy.get_param("~manual_control/turn_rate_max_rad_s", 0.18),
             direction_deadband=rospy.get_param("~manual_control/direction_deadband", 0.15),
             turn_deadband=rospy.get_param("~manual_control/turn_deadband", 0.12),
+            direct_cmd_vel_bridge_enabled=rospy.get_param("~manual_control/direct_cmd_vel_bridge_enabled", True),
+            direct_cmd_vel_bridge_modes=rospy.get_param(
+                "~manual_control/direct_cmd_vel_bridge_modes", ["MANUAL", "MANUAL_MAPPING"]
+            ),
         )
         config = RuntimeAdapterConfig(
             dry_run=rospy.get_param("~dry_run", rospy.get_param("/dry_run", True)),

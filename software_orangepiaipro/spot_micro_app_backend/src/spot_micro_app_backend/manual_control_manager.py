@@ -20,7 +20,7 @@ class ManualControlManager(object):
             return False
 
         self._watchdog.note_manual_input(intent.session_id, intent.timestamp_sec)
-        result = self._ros_runtime.publish_manual_intent(intent, state.speed_level)
+        result = self._ros_runtime.publish_manual_intent(intent, state.speed_level, state.selected_mode)
         self._state_manager.set_last_action(result)
         if not result.accepted:
             return False
@@ -47,7 +47,8 @@ class ManualControlManager(object):
             timestamp_sec=state.last_manual_input_at,
             session_id=state.last_session_id or "timeout",
         )
-        self._ros_runtime.publish_manual_intent(neutral_intent, state.speed_level)
+        mode = state.selected_mode
+        self._ros_runtime.publish_manual_intent(neutral_intent, state.speed_level, mode)
         self._state_manager.set_control_source(ControlSource.NONE)
         if state.armed:
             self._state_manager.set_runtime_state(RuntimeState.ARMED_READY)
