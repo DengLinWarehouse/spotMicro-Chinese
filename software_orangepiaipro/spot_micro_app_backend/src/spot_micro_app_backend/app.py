@@ -5,7 +5,7 @@ import time
 from .action_manager import ActionManager
 from .health_monitor import HealthMonitor
 from .manual_control_manager import ManualControlManager
-from .map_registry import MapRegistry
+from .map_registry import MapRegistry, MapStorageConfig
 from .mode_manager import ModeManager
 from .models import ActionResult, ActionType, ControlMode, ManualIntent
 from .ros_runtime_adapter import DryRunRosRuntimeAdapter, RuntimeAdapterConfig, TopicRosRuntimeAdapter
@@ -15,7 +15,7 @@ from .status_gateway import StatusGateway
 
 
 class SpotMicroAppBackend(object):
-    def __init__(self, config: RuntimeAdapterConfig):
+    def __init__(self, config: RuntimeAdapterConfig, map_storage_config: MapStorageConfig):
         self.config = config
         self.state_manager = StateManager()
         if config.dry_run:
@@ -31,7 +31,12 @@ class SpotMicroAppBackend(object):
         self.action_manager = ActionManager(self.state_manager, self.ros_runtime)
         self.manual_control_manager = ManualControlManager(self.state_manager, self.ros_runtime, self.watchdog)
         self.health_monitor = HealthMonitor(self.state_manager, self.ros_runtime)
-        self.map_registry = MapRegistry(self.state_manager)
+        self.map_registry = MapRegistry(
+            self.state_manager,
+            storage_config=map_storage_config,
+            map_topic=config.topics.map_topic,
+            dry_run=config.dry_run,
+        )
         self.status_gateway = StatusGateway(self.state_manager)
         self.state_manager.set_selected_map("", "")
 
@@ -84,6 +89,29 @@ class SpotMicroAppBackend(object):
 
     def list_maps(self):
         return self.map_registry.list_maps()
+
+    def save_map(self, display_name: str) -> ActionResult:
+        result = self.map_registry.save_map(display_name, self.state_manager.snapshot().selected_mode)
+        self.state_manager.set_last_action(result)
+        return result
+
+    def select_map(self, map_id: str) -> ActionResult:
+        result = self.map_registry.select_map(map_id)
+        self.state_manager.set_last_action(result)
+        return result
+
+    def rename_map(self, map_id: str, display_name: str) -> ActionResult:
+        result = self.map_registry.rename_map(map_id, display_name)
+        self.state_manager.set_last_action(result)
+        return result
+
+    def get_map_preview_info(self, requested_map_id: str = ""):
+        status = self.state_manager.snapshot()
+        return self.map_registry.get_preview_info(
+            current_mode=status.selected_mode,
+            selected_map_id=status.selected_map.map_id,
+            requested_map_id=requested_map_id,
+        )
 
     def process_timeouts(self):
         if self.watchdog.session_expired():

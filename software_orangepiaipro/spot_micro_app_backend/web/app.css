@@ -197,6 +197,14 @@ button {
   cursor: pointer;
 }
 
+.mode-button:disabled,
+.action-button:disabled,
+.speed-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
 .mode-button {
   min-height: 56px;
   background: rgba(255, 250, 243, 0.72);
@@ -414,6 +422,45 @@ button {
   object-fit: cover;
 }
 
+.map-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.map-tool-button {
+  min-height: 48px;
+}
+
+.map-selection-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 250, 243, 0.66);
+}
+
+.selection-copy span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.selection-copy strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.confirm-map-button {
+  min-height: 46px;
+  padding: 0 16px;
+}
+
 .feedback-card {
   min-height: 112px;
   padding: 16px;
@@ -435,6 +482,88 @@ button {
   padding-left: 18px;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.maps-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.maps-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(63, 46, 34, 0.08);
+}
+
+.maps-list li:last-child {
+  border-bottom: none;
+}
+
+.map-item {
+  display: grid;
+  gap: 10px;
+}
+
+.map-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.map-item-title {
+  display: block;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.map-item-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.map-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.map-badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(31, 36, 40, 0.06);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.map-badge-selected {
+  background: rgba(47, 110, 71, 0.12);
+  color: var(--success);
+}
+
+.map-badge-pending {
+  background: rgba(202, 92, 54, 0.14);
+  color: var(--accent-strong);
+}
+
+.map-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mini-button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.78);
+  cursor: pointer;
+}
+
+.mini-button:hover {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 1180px) {

@@ -20,6 +20,10 @@
     forwardAxisLabel: document.getElementById("forward-axis-label"),
     turnAxisLabel: document.getElementById("turn-axis-label"),
     mapPreviewImage: document.getElementById("map-preview-image"),
+    saveMapButton: document.getElementById("save-map-button"),
+    renameMapButton: document.getElementById("rename-map-button"),
+    confirmMapSelectButton: document.getElementById("confirm-map-select-button"),
+    pendingMapName: document.getElementById("pending-map-name"),
   };
 
   const joystick = {
@@ -32,6 +36,10 @@
   };
 
   let currentStatus = null;
+  let currentMaps = [];
+  let currentPreview = null;
+  let pendingMapId = "";
+  let pendingMapName = "";
   let lastPreviewStamp = 0;
 
   function setFeedback(message) {
@@ -40,6 +48,40 @@
 
   function humanNow() {
     return new Date().toLocaleTimeString("zh-CN", { hour12: false });
+  }
+
+  function humanTime(timestampSec) {
+    if (!timestampSec) return "-";
+    const value = Number(timestampSec);
+    if (!Number.isFinite(value) || value <= 0) return "-";
+    return new Date(value * 1000).toLocaleString("zh-CN", { hour12: false });
+  }
+
+  function isMappingMode(mode) {
+    return mode === "MANUAL_MAPPING" || mode === "AUTO_EXPLORE_MAPPING";
+  }
+
+  function supportsMapPreview(mode) {
+    return mode === "MANUAL_MAPPING" || mode === "AUTO_EXPLORE_MAPPING" || mode === "AUTO_PATROL";
+  }
+
+  function syncPendingSelection() {
+    const selectedMapId = currentStatus && currentStatus.selected_map ? currentStatus.selected_map.map_id : "";
+    if (selectedMapId && pendingMapId === selectedMapId) {
+      pendingMapId = "";
+      pendingMapName = "";
+    }
+    stateEls.pendingMapName.textContent = pendingMapName || "未选择";
+    stateEls.confirmMapSelectButton.disabled = !pendingMapId;
+  }
+
+  function setPendingMap(mapId, displayName) {
+    pendingMapId = mapId || "";
+    pendingMapName = displayName || "";
+    syncPendingSelection();
+    refreshPreview();
+    loadPreviewMeta();
+    renderMaps(currentMaps);
   }
 
   async function requestJson(url, options) {
@@ -77,21 +119,22 @@
     try {
       const { payload } = await requestJson("/api/maps");
       if (!payload.ok) return;
-      const maps = Array.isArray(payload.maps) ? payload.maps : [];
-      stateEls.mapsList.innerHTML = "";
-      if (!maps.length) {
-        const li = document.createElement("li");
-        li.textContent = "暂无已注册地图";
-        stateEls.mapsList.appendChild(li);
-        return;
-      }
-      maps.forEach((map) => {
-        const li = document.createElement("li");
-        li.textContent = map.display_name + " (" + map.map_id + ")";
-        stateEls.mapsList.appendChild(li);
-      });
+      currentMaps = Array.isArray(payload.maps) ? payload.maps : [];
+      renderMaps(currentMaps);
     } catch (error) {
       setFeedback("地图列表加载失败: " + error.message);
+    }
+  }
+
+  async function loadPreviewMeta() {
+    try {
+      const suffix = pendingMapId ? "?map_id=" + encodeURIComponent(pendingMapId) : "";
+      const { payload } = await requestJson("/api/map-preview-meta" + suffix);
+      if (!payload.ok) return;
+      currentPreview = payload.preview || null;
+      renderPreviewMeta(currentPreview);
+    } catch (error) {
+      setFeedback("地图预览信息加载失败: " + error.message);
     }
   }
 
@@ -118,14 +161,13 @@
     stateEls.rosPill.textContent = status.ros_connected ? "ROS 已连接" : "ROS 未连接";
     stateEls.rosPill.className = "pill " + (status.ros_connected ? "pill-ok" : "pill-danger");
 
-    document.querySelectorAll(".mode-button").forEach((button) => {
+    document.querySelectorAll(".mode-button[data-mode]").forEach((button) => {
       button.classList.toggle("active", button.dataset.mode === status.selected_mode);
     });
 
-    const previewMode = ["MANUAL_MAPPING", "AUTO_EXPLORE_MAPPING", "AUTO_PATROL"].includes(status.selected_mode);
-    stateEls.mapPreviewMeta.textContent = previewMode
-      ? "预览已刷新 " + humanNow()
-      : "当前模式正式版可隐藏，这里保留仅用于联调验证";
+    stateEls.saveMapButton.hidden = !isMappingMode(status.selected_mode);
+    stateEls.renameMapButton.disabled = !(status.selected_map && status.selected_map.map_id);
+    syncPendingSelection();
 
     if (status.last_action) {
       setFeedback(
@@ -139,13 +181,125 @@
     }
   }
 
+  function renderPreviewMeta(preview) {
+    const mode = currentStatus ? currentStatus.selected_mode : "";
+    if (!preview) {
+      stateEls.mapPreviewMeta.textContent = "等待后端预览数据";
+      return;
+    }
+
+    const parts = [];
+    parts.push(preview.message || "地图预览");
+    if (preview.updated_at) {
+      parts.push("更新时间 " + humanTime(preview.updated_at));
+    }
+    if (preview.stale) {
+      parts.push("预览过期");
+    }
+    if (!supportsMapPreview(mode)) {
+      parts.push("当前模式正式版可折叠");
+    }
+    stateEls.mapPreviewMeta.textContent = parts.join(" · ");
+    stateEls.saveMapButton.disabled = !preview.can_save;
+  }
+
+  function renderMaps(maps) {
+    const selectedMapId = currentStatus && currentStatus.selected_map ? currentStatus.selected_map.map_id : "";
+    stateEls.mapsList.innerHTML = "";
+    if (!maps.length) {
+      const li = document.createElement("li");
+      li.textContent = "暂无已注册地图";
+      stateEls.mapsList.appendChild(li);
+      return;
+    }
+
+    maps.forEach((map) => {
+      const li = document.createElement("li");
+      const wrapper = document.createElement("div");
+      wrapper.className = "map-item";
+
+      const top = document.createElement("div");
+      top.className = "map-item-top";
+
+      const textBox = document.createElement("div");
+      const title = document.createElement("span");
+      title.className = "map-item-title";
+      title.textContent = map.display_name || map.map_id;
+      const meta = document.createElement("span");
+      meta.className = "map-item-meta";
+      meta.textContent = [map.map_id, "更新时间 " + humanTime(map.updated_at || map.created_at)]
+        .filter(Boolean)
+        .join(" · ");
+      textBox.appendChild(title);
+      textBox.appendChild(meta);
+
+      const badges = document.createElement("div");
+      badges.className = "map-badges";
+      if (map.map_id === selectedMapId) {
+        const badge = document.createElement("span");
+        badge.className = "map-badge map-badge-selected";
+        badge.textContent = "当前使用";
+        badges.appendChild(badge);
+      }
+      if (map.map_id === pendingMapId) {
+        const badge = document.createElement("span");
+        badge.className = "map-badge map-badge-pending";
+        badge.textContent = "待确认";
+        badges.appendChild(badge);
+      }
+      if (!map.available) {
+        const badge = document.createElement("span");
+        badge.className = "map-badge";
+        badge.textContent = "文件缺失";
+        badges.appendChild(badge);
+      }
+
+      top.appendChild(textBox);
+      top.appendChild(badges);
+
+      const actions = document.createElement("div");
+      actions.className = "map-item-actions";
+
+      const pickButton = document.createElement("button");
+      pickButton.type = "button";
+      pickButton.className = "mini-button";
+      pickButton.textContent = map.map_id === pendingMapId ? "已暂选" : "暂选";
+      pickButton.disabled = !map.available;
+      pickButton.addEventListener("click", () => {
+        setPendingMap(map.map_id, map.display_name || map.map_id);
+      });
+
+      const renameButton = document.createElement("button");
+      renameButton.type = "button";
+      renameButton.className = "mini-button";
+      renameButton.textContent = "改名";
+      renameButton.addEventListener("click", async () => {
+        const nextName = window.prompt("请输入新的地图显示名称", map.display_name || map.map_id);
+        if (!nextName) return;
+        await renameMap(map.map_id, nextName);
+      });
+
+      actions.appendChild(pickButton);
+      actions.appendChild(renameButton);
+
+      wrapper.appendChild(top);
+      wrapper.appendChild(actions);
+      li.appendChild(wrapper);
+      stateEls.mapsList.appendChild(li);
+    });
+  }
+
   async function postMode(mode) {
     try {
       const { payload } = await requestJson("/api/mode/select", {
         method: "POST",
         body: JSON.stringify({ mode }),
       });
-      if (payload.status) renderStatus(payload.status);
+      if (payload.status) {
+        renderStatus(payload.status);
+      }
+      await loadPreviewMeta();
+      refreshPreview();
       setFeedback(JSON.stringify(payload, null, 2));
     } catch (error) {
       setFeedback("模式请求失败: " + error.message);
@@ -158,7 +312,11 @@
         method: "POST",
         body: JSON.stringify({ action }),
       });
-      if (payload.status) renderStatus(payload.status);
+      if (payload.status) {
+        renderStatus(payload.status);
+      }
+      await loadPreviewMeta();
+      refreshPreview();
       setFeedback(JSON.stringify(payload, null, 2));
     } catch (error) {
       setFeedback("动作请求失败: " + error.message);
@@ -176,6 +334,73 @@
     } catch (error) {
       setFeedback("速度档位更新失败: " + error.message);
     }
+  }
+
+  async function saveMap() {
+    const suggestedName = "地图_" + new Date().toLocaleString("zh-CN", { hour12: false }).replace(/[/: ]/g, "_");
+    const displayName = window.prompt("请输入地图名称", suggestedName);
+    if (!displayName) return;
+    try {
+      const { payload } = await requestJson("/api/maps/save", {
+        method: "POST",
+        body: JSON.stringify({ display_name: displayName }),
+      });
+      if (payload.status) renderStatus(payload.status);
+      pendingMapId = "";
+      pendingMapName = "";
+      await loadMaps();
+      await loadPreviewMeta();
+      refreshPreview();
+      setFeedback(JSON.stringify(payload, null, 2));
+    } catch (error) {
+      setFeedback("地图保存失败: " + error.message);
+    }
+  }
+
+  async function confirmMapSelection() {
+    if (!pendingMapId) return;
+    try {
+      const { payload } = await requestJson("/api/maps/select", {
+        method: "POST",
+        body: JSON.stringify({ map_id: pendingMapId }),
+      });
+      if (payload.status) renderStatus(payload.status);
+      pendingMapId = "";
+      pendingMapName = "";
+      await loadMaps();
+      await loadPreviewMeta();
+      refreshPreview();
+      setFeedback(JSON.stringify(payload, null, 2));
+    } catch (error) {
+      setFeedback("地图选择失败: " + error.message);
+    }
+  }
+
+  async function renameMap(mapId, displayName) {
+    try {
+      const { payload } = await requestJson("/api/maps/rename", {
+        method: "POST",
+        body: JSON.stringify({ map_id: mapId, display_name: displayName }),
+      });
+      if (payload.status) renderStatus(payload.status);
+      if (pendingMapId === mapId) {
+        pendingMapName = displayName;
+      }
+      await loadMaps();
+      await loadPreviewMeta();
+      refreshPreview();
+      setFeedback(JSON.stringify(payload, null, 2));
+    } catch (error) {
+      setFeedback("地图改名失败: " + error.message);
+    }
+  }
+
+  async function renameCurrentMap() {
+    const selected = currentStatus && currentStatus.selected_map ? currentStatus.selected_map : null;
+    if (!selected || !selected.map_id) return;
+    const displayName = window.prompt("请输入新的地图显示名称", selected.display_name || selected.map_id);
+    if (!displayName) return;
+    await renameMap(selected.map_id, displayName);
   }
 
   async function sendManualIntent() {
@@ -197,9 +422,17 @@
     }
   }
 
-  function refreshPreview() {
+  function getPreviewUrl() {
     lastPreviewStamp += 1;
-    stateEls.mapPreviewImage.src = "/api/map-preview?t=" + lastPreviewStamp;
+    let url = "/api/map-preview?t=" + lastPreviewStamp;
+    if (pendingMapId) {
+      url += "&map_id=" + encodeURIComponent(pendingMapId);
+    }
+    return url;
+  }
+
+  function refreshPreview() {
+    stateEls.mapPreviewImage.src = getPreviewUrl();
   }
 
   function clamp(value, min, max) {
@@ -221,12 +454,12 @@
     joystick.turn = clamp(limitedX / radius, -1, 1);
     joystick.forward = clamp(-limitedY / radius, -1, 1);
 
-    joystick.stick.style.transform = `translate(calc(-50% + ${limitedX}px), calc(-50% + ${limitedY}px))`;
+    joystick.stick.style.transform = "translate(calc(-50% + " + limitedX + "px), calc(-50% + " + limitedY + "px))";
     stateEls.forwardAxisLabel.textContent = joystick.forward.toFixed(2);
     stateEls.turnAxisLabel.textContent = joystick.turn.toFixed(2);
   }
 
-  function resetJoystick(send = true) {
+  function resetJoystick(send) {
     joystick.active = false;
     joystick.pointerId = null;
     joystick.forward = 0;
@@ -262,16 +495,20 @@
   document.getElementById("refresh-status").addEventListener("click", async () => {
     await loadStatus();
     await loadMaps();
+    await loadPreviewMeta();
     refreshPreview();
   });
 
-  document.querySelectorAll(".mode-button").forEach((button) => {
+  document.querySelectorAll(".mode-button[data-mode]").forEach((button) => {
     button.addEventListener("click", () => postMode(button.dataset.mode));
   });
 
   document.getElementById("start-button").addEventListener("click", () => postAction("START"));
   document.getElementById("safe-stop-button").addEventListener("click", () => postAction("SAFE_STOP"));
   document.getElementById("estop-button").addEventListener("click", () => postAction("ESTOP"));
+  stateEls.saveMapButton.addEventListener("click", saveMap);
+  stateEls.renameMapButton.addEventListener("click", renameCurrentMap);
+  stateEls.confirmMapSelectButton.addEventListener("click", confirmMapSelection);
 
   document.getElementById("speed-down").addEventListener("click", () => {
     const current = currentStatus ? Number(currentStatus.speed_level || 0) : 0;
@@ -286,6 +523,7 @@
   setInterval(loadStatus, 800);
   setInterval(pingSession, 1000);
   setInterval(loadMaps, 2500);
+  setInterval(loadPreviewMeta, 2500);
   setInterval(refreshPreview, 2500);
   setInterval(() => {
     if (joystick.active) sendManualIntent();
@@ -293,6 +531,7 @@
 
   loadStatus();
   loadMaps();
+  loadPreviewMeta();
   pingSession();
   refreshPreview();
 })();

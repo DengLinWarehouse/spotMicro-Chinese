@@ -119,6 +119,19 @@
               <div class="preview-frame">
                 <img id="map-preview-image" alt="地图预览" src="/api/map-preview" />
               </div>
+              <div class="map-toolbar">
+                <button id="save-map-button" class="mode-button map-tool-button" type="button">保存当前地图</button>
+                <button id="rename-map-button" class="mode-button map-tool-button" type="button">重命名当前地图</button>
+              </div>
+              <div class="map-selection-strip">
+                <div class="selection-copy">
+                  <span>待确认地图</span>
+                  <strong id="pending-map-name">未选择</strong>
+                </div>
+                <button id="confirm-map-select-button" class="action-button action-start confirm-map-button" type="button">
+                  确认选图
+                </button>
+              </div>
             </section>
           </div>
         </section>

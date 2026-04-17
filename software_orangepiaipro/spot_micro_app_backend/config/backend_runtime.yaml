@@ -1,4 +1,4 @@
-dry_run: true
+dry_run: false
 health_poll_hz: 2.0
 manual_input_timeout_sec: 0.6
 session_timeout_sec: 2.0
@@ -40,3 +40,14 @@ manual_control:
   turn_deadband: 0.12
   direct_cmd_vel_bridge_enabled: true
   direct_cmd_vel_bridge_modes: [MANUAL, MANUAL_MAPPING]
+
+map_storage:
+  root_dir: ~/Desktop/SpotMicro/app_backend
+  maps_dir: ~/Desktop/SpotMicro/maps/app_maps
+  previews_dir: ~/Desktop/SpotMicro/app_backend/previews
+  registry_file: ~/Desktop/SpotMicro/app_backend/map_registry.json
+  preview_filename: latest_preview.png
+  preview_max_side_px: 512
+  preview_stale_after_sec: 8.0
+  occupied_thresh: 0.65
+  free_thresh: 0.196

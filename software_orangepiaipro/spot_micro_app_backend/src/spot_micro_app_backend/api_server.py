@@ -5,7 +5,7 @@ import os
 import threading
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .models import ActionResult
 
@@ -52,6 +52,7 @@ class BackendHttpServer(object):
             def do_GET(self):
                 parsed = urlparse(self.path)
                 path = parsed.path
+                query = parse_qs(parsed.query)
                 if path == "/":
                     return self._serve_static("index.html", "text/html; charset=utf-8")
                 if path == "/app.css":
@@ -61,9 +62,23 @@ class BackendHttpServer(object):
                 if path == "/api/status":
                     return self._json_response({"ok": True, "status": backend.get_status()})
                 if path == "/api/maps":
-                    return self._json_response({"ok": True, "maps": backend.list_maps()})
+                    status = backend.get_status()
+                    selected_map = status.get("selected_map", {}) or {}
+                    return self._json_response(
+                        {
+                            "ok": True,
+                            "maps": backend.list_maps(),
+                            "selected_map_id": selected_map.get("map_id", ""),
+                        }
+                    )
+                if path == "/api/map-preview-meta":
+                    requested_map_id = self._first_query_value(query, "map_id")
+                    return self._json_response(
+                        {"ok": True, "preview": backend.get_map_preview_info(requested_map_id=requested_map_id)}
+                    )
                 if path == "/api/map-preview":
-                    return self._map_preview_response()
+                    requested_map_id = self._first_query_value(query, "map_id")
+                    return self._map_preview_response(requested_map_id)
                 return self._json_response({"ok": False, "error": "not_found"}, status=HTTPStatus.NOT_FOUND)
 
             def do_POST(self):
@@ -126,6 +141,30 @@ class BackendHttpServer(object):
                     result = backend.set_speed_level(speed_level)
                     return self._action_response(result)
 
+                if self.path == "/api/maps/save":
+                    display_name = str(payload.get("display_name", "")).strip()
+                    if not display_name:
+                        return self._json_response({"ok": False, "error": "missing_display_name"}, status=HTTPStatus.BAD_REQUEST)
+                    result = backend.save_map(display_name)
+                    return self._action_response(result)
+
+                if self.path == "/api/maps/select":
+                    map_id = str(payload.get("map_id", "")).strip()
+                    if not map_id:
+                        return self._json_response({"ok": False, "error": "missing_map_id"}, status=HTTPStatus.BAD_REQUEST)
+                    result = backend.select_map(map_id)
+                    return self._action_response(result)
+
+                if self.path == "/api/maps/rename":
+                    map_id = str(payload.get("map_id", "")).strip()
+                    display_name = str(payload.get("display_name", "")).strip()
+                    if not map_id:
+                        return self._json_response({"ok": False, "error": "missing_map_id"}, status=HTTPStatus.BAD_REQUEST)
+                    if not display_name:
+                        return self._json_response({"ok": False, "error": "missing_display_name"}, status=HTTPStatus.BAD_REQUEST)
+                    result = backend.rename_map(map_id, display_name)
+                    return self._action_response(result)
+
                 return self._json_response({"ok": False, "error": "not_found"}, status=HTTPStatus.NOT_FOUND)
 
             def log_message(self, format, *args):
@@ -146,18 +185,19 @@ class BackendHttpServer(object):
                     status=status_code,
                 )
 
-            def _map_preview_response(self):
+            def _map_preview_response(self, requested_map_id: str = ""):
                 status = backend.get_status()
                 selected_map = status.get("selected_map", {}) or {}
-                map_name = selected_map.get("display_name") or "未选择地图"
                 mode = status.get("selected_mode", "UNKNOWN")
                 state = status.get("runtime_state", "UNKNOWN")
                 fault_reason = status.get("fault_reason") or ""
-                preview_path = selected_map.get("preview_path") or ""
+                preview = backend.get_map_preview_info(requested_map_id=requested_map_id)
+                preview_path = str(preview.get("image_path", "") or "")
+                map_name = str(preview.get("map_name", "") or selected_map.get("display_name") or "未选择地图")
+                subtitle = str(preview.get("message", "") or "预览占位图")
                 if preview_path and os.path.isfile(preview_path):
                     return self._serve_binary_file(preview_path, self._guess_mime(preview_path))
 
-                subtitle = "预览占位图"
                 if fault_reason:
                     subtitle = "故障: %s" % fault_reason
                 elif state == "ESTOP_LATCHED":
@@ -172,6 +212,13 @@ class BackendHttpServer(object):
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 self.wfile.write(body)
+
+            @staticmethod
+            def _first_query_value(query, key: str) -> str:
+                values = query.get(key) or []
+                if not values:
+                    return ""
+                return str(values[0] or "").strip()
 
             def _build_preview_svg(self, mode: str, state: str, map_name: str, subtitle: str) -> str:
                 safe_mode = self._xml_escape(mode)

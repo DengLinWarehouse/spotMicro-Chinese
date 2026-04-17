@@ -3,6 +3,7 @@ import rospy
 
 from spot_micro_app_backend.app import SpotMicroAppBackend
 from spot_micro_app_backend.api_server import BackendHttpServer
+from spot_micro_app_backend.map_registry import MapStorageConfig
 from spot_micro_app_backend.models import ControlMode
 from spot_micro_app_backend.ros_runtime_adapter import (
     LifecycleConfig,
@@ -51,6 +52,19 @@ class SpotMicroAppBackendNode(object):
                 "~manual_control/direct_cmd_vel_bridge_modes", ["MANUAL", "MANUAL_MAPPING"]
             ),
         )
+        map_storage = MapStorageConfig(
+            root_dir=rospy.get_param("~map_storage/root_dir", "~/Desktop/SpotMicro/app_backend"),
+            maps_dir=rospy.get_param("~map_storage/maps_dir", "~/Desktop/SpotMicro/maps/app_maps"),
+            previews_dir=rospy.get_param("~map_storage/previews_dir", "~/Desktop/SpotMicro/app_backend/previews"),
+            registry_file=rospy.get_param(
+                "~map_storage/registry_file", "~/Desktop/SpotMicro/app_backend/map_registry.json"
+            ),
+            preview_filename=rospy.get_param("~map_storage/preview_filename", "latest_preview.png"),
+            preview_max_side_px=int(rospy.get_param("~map_storage/preview_max_side_px", 512)),
+            preview_stale_after_sec=rospy.get_param("~map_storage/preview_stale_after_sec", 8.0),
+            occupied_thresh=rospy.get_param("~map_storage/occupied_thresh", 0.65),
+            free_thresh=rospy.get_param("~map_storage/free_thresh", 0.196),
+        )
         config = RuntimeAdapterConfig(
             dry_run=rospy.get_param("~dry_run", rospy.get_param("/dry_run", True)),
             health_poll_hz=rospy.get_param("~health_poll_hz", rospy.get_param("/health_poll_hz", 2.0)),
@@ -64,7 +78,7 @@ class SpotMicroAppBackendNode(object):
             lifecycle=lifecycle,
             manual_control=manual_control,
         )
-        self.backend = SpotMicroAppBackend(config)
+        self.backend = SpotMicroAppBackend(config, map_storage)
         self.backend.state_manager.set_selected_mode(ControlMode.MANUAL)
         self.backend.refresh_health()
         period = max(1.0 / max(config.health_poll_hz, 0.1), 0.1)
