@@ -50,6 +50,21 @@ class ManualControlConfig:
 
 
 @dataclass(frozen=True)
+class PatrolConfig:
+    forward_speed_mps: float = 0.08
+    turn_rate_rad_s: float = 0.45
+    cruise_segment_sec_min: float = 1.8
+    cruise_segment_sec_max: float = 3.6
+    turn_segment_sec_min: float = 0.7
+    turn_segment_sec_max: float = 1.5
+    pause_segment_sec_min: float = 0.4
+    pause_segment_sec_max: float = 1.0
+    forward_probability: float = 0.58
+    pause_probability: float = 0.12
+    zero_transition_sec: float = 0.12
+
+
+@dataclass(frozen=True)
 class RuntimeAdapterConfig:
     dry_run: bool = True
     health_poll_hz: float = 2.0
@@ -58,6 +73,7 @@ class RuntimeAdapterConfig:
     topics: RuntimeAdapterTopics = RuntimeAdapterTopics()
     lifecycle: LifecycleConfig = LifecycleConfig()
     manual_control: ManualControlConfig = ManualControlConfig(speed_levels_mps=(0.0, 0.03, 0.06, 0.09, 0.12))
+    patrol: PatrolConfig = PatrolConfig()
 
 
 class RosRuntimeAdapter(object):
@@ -74,6 +90,9 @@ class RosRuntimeAdapter(object):
         raise NotImplementedError
 
     def publish_manual_intent(self, intent: ManualIntent, speed_level: int, mode: ControlMode) -> ActionResult:
+        raise NotImplementedError
+
+    def publish_auto_command(self, linear_x: float, angular_z: float, mode: ControlMode) -> ActionResult:
         raise NotImplementedError
 
 
@@ -118,6 +137,23 @@ class DryRunRosRuntimeAdapter(RosRuntimeAdapter):
             )
         return ActionResult(
             ActionType.MANUAL_INTENT, False, "not_implemented", "live ROS manual intent path is not implemented yet"
+        )
+
+    def publish_auto_command(self, linear_x: float, angular_z: float, mode: ControlMode) -> ActionResult:
+        if self._config.dry_run:
+            return ActionResult(
+                ActionType.MANUAL_INTENT,
+                True,
+                "dry_run_ok",
+                "auto command accepted in dry-run mode",
+                details={
+                    "linear_x": "%.3f" % float(linear_x),
+                    "angular_z": "%.3f" % float(angular_z),
+                    "mode": mode.value,
+                },
+            )
+        return ActionResult(
+            ActionType.MANUAL_INTENT, False, "not_implemented", "live ROS auto command path is not implemented yet"
         )
 
 
@@ -246,6 +282,18 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
             "bridged_to_cmd_vel": str(bridged_to_cmd_vel).lower(),
         }
         return ActionResult(ActionType.MANUAL_INTENT, True, "ros_ok", "manual intent published", details)
+
+    def publish_auto_command(self, linear_x: float, angular_z: float, mode: ControlMode) -> ActionResult:
+        twist = Twist()
+        twist.linear.x = float(linear_x)
+        twist.angular.z = float(angular_z)
+        self._auto_pub.publish(twist)
+        details = {
+            "linear_x": "%.3f" % twist.linear.x,
+            "angular_z": "%.3f" % twist.angular.z,
+            "mode": mode.value,
+        }
+        return ActionResult(ActionType.MANUAL_INTENT, True, "ros_ok", "auto command published", details)
 
     def _set_auto_enabled(self, enabled: bool):
         self._enable_pub.publish(Bool(data=enabled))

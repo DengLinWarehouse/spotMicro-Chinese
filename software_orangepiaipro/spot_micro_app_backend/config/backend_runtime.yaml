@@ -41,6 +41,19 @@ manual_control:
   direct_cmd_vel_bridge_enabled: true
   direct_cmd_vel_bridge_modes: [MANUAL, MANUAL_MAPPING]
 
+patrol:
+  forward_speed_mps: 0.08
+  turn_rate_rad_s: 0.45
+  cruise_segment_sec_min: 1.8
+  cruise_segment_sec_max: 3.6
+  turn_segment_sec_min: 0.7
+  turn_segment_sec_max: 1.5
+  pause_segment_sec_min: 0.4
+  pause_segment_sec_max: 1.0
+  forward_probability: 0.58
+  pause_probability: 0.12
+  zero_transition_sec: 0.12
+
 map_storage:
   root_dir: ~/Desktop/SpotMicro/app_backend
   maps_dir: ~/Desktop/SpotMicro/maps/app_maps

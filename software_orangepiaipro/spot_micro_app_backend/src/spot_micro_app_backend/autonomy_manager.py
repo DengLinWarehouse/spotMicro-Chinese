@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from .map_registry import MapRegistry
 from .models import ActionResult, ActionType, ControlMode
 from .state_manager import StateManager
@@ -10,7 +12,7 @@ class AutonomyManager(object):
         self._state_manager = state_manager
         self._map_registry = map_registry
 
-    def preflight_start(self, mode: ControlMode) -> ActionResult | None:
+    def preflight_start(self, mode: ControlMode) -> Optional[ActionResult]:
         if mode not in (ControlMode.AUTO_EXPLORE_MAPPING, ControlMode.AUTO_PATROL):
             return None
 

@@ -8,6 +8,7 @@ from spot_micro_app_backend.models import ControlMode
 from spot_micro_app_backend.ros_runtime_adapter import (
     LifecycleConfig,
     ManualControlConfig,
+    PatrolConfig,
     RuntimeAdapterConfig,
     RuntimeAdapterTopics,
 )
@@ -52,6 +53,19 @@ class SpotMicroAppBackendNode(object):
                 "~manual_control/direct_cmd_vel_bridge_modes", ["MANUAL", "MANUAL_MAPPING"]
             ),
         )
+        patrol = PatrolConfig(
+            forward_speed_mps=rospy.get_param("~patrol/forward_speed_mps", 0.08),
+            turn_rate_rad_s=rospy.get_param("~patrol/turn_rate_rad_s", 0.45),
+            cruise_segment_sec_min=rospy.get_param("~patrol/cruise_segment_sec_min", 1.8),
+            cruise_segment_sec_max=rospy.get_param("~patrol/cruise_segment_sec_max", 3.6),
+            turn_segment_sec_min=rospy.get_param("~patrol/turn_segment_sec_min", 0.7),
+            turn_segment_sec_max=rospy.get_param("~patrol/turn_segment_sec_max", 1.5),
+            pause_segment_sec_min=rospy.get_param("~patrol/pause_segment_sec_min", 0.4),
+            pause_segment_sec_max=rospy.get_param("~patrol/pause_segment_sec_max", 1.0),
+            forward_probability=rospy.get_param("~patrol/forward_probability", 0.58),
+            pause_probability=rospy.get_param("~patrol/pause_probability", 0.12),
+            zero_transition_sec=rospy.get_param("~patrol/zero_transition_sec", 0.12),
+        )
         map_storage = MapStorageConfig(
             root_dir=rospy.get_param("~map_storage/root_dir", "~/Desktop/SpotMicro/app_backend"),
             maps_dir=rospy.get_param("~map_storage/maps_dir", "~/Desktop/SpotMicro/maps/app_maps"),
@@ -77,6 +91,7 @@ class SpotMicroAppBackendNode(object):
             topics=topics,
             lifecycle=lifecycle,
             manual_control=manual_control,
+            patrol=patrol,
         )
         self.backend = SpotMicroAppBackend(config, map_storage)
         self.backend.state_manager.set_selected_mode(ControlMode.MANUAL)

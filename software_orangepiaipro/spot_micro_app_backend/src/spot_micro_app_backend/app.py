@@ -9,6 +9,7 @@ from .manual_control_manager import ManualControlManager
 from .map_registry import MapRegistry, MapStorageConfig
 from .mode_manager import ModeManager
 from .models import ActionResult, ActionType, ControlMode, ManualIntent
+from .random_patrol_manager import RandomPatrolManager
 from .ros_runtime_adapter import DryRunRosRuntimeAdapter, RuntimeAdapterConfig, TopicRosRuntimeAdapter
 from .session_watchdog import SessionWatchdog
 from .state_manager import StateManager
@@ -38,6 +39,7 @@ class SpotMicroAppBackend(object):
         self.autonomy_manager = AutonomyManager(self.state_manager, self.map_registry)
         self.action_manager = ActionManager(self.state_manager, self.ros_runtime, self.autonomy_manager)
         self.manual_control_manager = ManualControlManager(self.state_manager, self.ros_runtime, self.watchdog)
+        self.random_patrol_manager = RandomPatrolManager(self.state_manager, self.ros_runtime, config.patrol)
         self.health_monitor = HealthMonitor(self.state_manager, self.ros_runtime)
         self.status_gateway = StatusGateway(self.state_manager)
 
@@ -118,3 +120,4 @@ class SpotMicroAppBackend(object):
         if self.watchdog.session_expired():
             self.state_manager.set_ui_connected(False)
         self.manual_control_manager.handle_timeout()
+        self.random_patrol_manager.tick()
