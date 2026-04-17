@@ -99,6 +99,7 @@ class MapRegistry(object):
         self._runtime_preview_stamp = None
         self._runtime_preview_updated_at = 0.0
         self._runtime_preview_path = os.path.join(self._config.previews_dir, self._config.preview_filename)
+        self._selected_map_id = ""
 
         self._ensure_storage_layout()
         self._load_registry()
@@ -112,6 +113,14 @@ class MapRegistry(object):
         with self._lock:
             records = sorted(self._maps.values(), key=lambda item: (item.updated_at, item.created_at, item.map_id), reverse=True)
             return [record.to_dict() for record in records]
+
+    def is_map_available(self, map_id: str) -> bool:
+        target_map_id = str(map_id or "").strip()
+        if not target_map_id:
+            return False
+        with self._lock:
+            record = self._maps.get(target_map_id)
+            return bool(record is not None and record.is_available())
 
     def save_map(self, display_name: str, current_mode: ControlMode) -> ActionResult:
         clean_name = self._normalize_display_name(display_name)
@@ -142,6 +151,8 @@ class MapRegistry(object):
                 return ActionResult(ActionType.SELECT_MAP, False, "map_not_found", "requested map does not exist")
             if not record.is_available():
                 return ActionResult(ActionType.SELECT_MAP, False, "map_unavailable", "requested map file is unavailable")
+            self._selected_map_id = record.map_id
+            self._persist_registry_locked()
 
         self._state_manager.set_selected_map(record.map_id, record.display_name)
         return ActionResult(
@@ -269,11 +280,13 @@ class MapRegistry(object):
 
     def _load_registry(self):
         if not os.path.isfile(self._config.registry_file):
+            self._state_manager.set_selected_map("", "")
             return
         try:
             with open(self._config.registry_file, "r", encoding="utf-8") as handle:
                 payload = json.load(handle)
         except Exception:
+            self._state_manager.set_selected_map("", "")
             return
 
         maps = payload.get("maps", []) if isinstance(payload, dict) else []
@@ -284,10 +297,14 @@ class MapRegistry(object):
                 continue
             if record.map_id:
                 self._maps[record.map_id] = record
+        if isinstance(payload, dict):
+            self._selected_map_id = str(payload.get("selected_map_id", "") or "").strip()
+        self._restore_selected_map_locked()
 
     def _persist_registry_locked(self):
         payload = {
             "maps": [record.to_dict() for record in sorted(self._maps.values(), key=lambda item: item.map_id)],
+            "selected_map_id": self._selected_map_id,
             "updated_at": time.time(),
         }
         with open(self._config.registry_file, "w", encoding="utf-8") as handle:
@@ -335,6 +352,7 @@ class MapRegistry(object):
             source="manual_save",
         )
         self._maps[record.map_id] = record
+        self._selected_map_id = record.map_id
         self._persist_registry_locked()
         self._state_manager.set_selected_map(record.map_id, record.display_name)
         return ActionResult(
@@ -365,6 +383,7 @@ class MapRegistry(object):
             source="dry_run_placeholder",
         )
         self._maps[record.map_id] = record
+        self._selected_map_id = record.map_id
         self._persist_registry_locked()
         self._state_manager.set_selected_map(record.map_id, record.display_name)
         return ActionResult(
@@ -410,23 +429,67 @@ class MapRegistry(object):
     def _write_preview_png_from_map_locked(self, msg: OccupancyGrid, path: str):
         width = int(msg.info.width)
         height = int(msg.info.height)
+        min_x, min_y, max_x, max_y = self._preview_crop_bounds(msg, width, height)
+        crop_width = max_x - min_x + 1
+        crop_height = max_y - min_y + 1
         max_side = max(int(self._config.preview_max_side_px), 64)
-        stride = max(1, int(math.ceil(max(width, height) / float(max_side))))
-        out_width = max(1, int(math.ceil(width / float(stride))))
-        out_height = max(1, int(math.ceil(height / float(stride))))
+        stride = max(1, int(math.ceil(max(crop_width, crop_height) / float(max_side))))
+        out_width = max(1, int(math.ceil(crop_width / float(stride))))
+        out_height = max(1, int(math.ceil(crop_height / float(stride))))
         pixels = bytearray(out_width * out_height)
 
         write_index = 0
         for out_y in range(out_height):
-            source_y = min(height - 1, out_y * stride)
+            source_y = min(max_y, min_y + out_y * stride)
             row = height - source_y - 1
             for out_x in range(out_width):
-                source_x = min(width - 1, out_x * stride)
+                source_x = min(max_x, min_x + out_x * stride)
                 value = msg.data[row * width + source_x]
                 pixels[write_index] = self._occupancy_to_pixel(value)
                 write_index += 1
 
         self._write_grayscale_png(path, out_width, out_height, bytes(pixels))
+
+    def _preview_crop_bounds(self, msg: OccupancyGrid, width: int, height: int) -> Tuple[int, int, int, int]:
+        known_bounds = self._known_cell_bounds(msg.data, width, height)
+        if known_bounds is None:
+            return (0, 0, max(0, width - 1), max(0, height - 1))
+
+        min_x, min_y, max_x, max_y = known_bounds
+        span = max(max_x - min_x + 1, max_y - min_y + 1)
+        padding = max(12, int(math.ceil(span * 0.08)))
+
+        return (
+            max(0, min_x - padding),
+            max(0, min_y - padding),
+            min(width - 1, max_x + padding),
+            min(height - 1, max_y + padding),
+        )
+
+    @staticmethod
+    def _known_cell_bounds(data, width: int, height: int) -> Optional[Tuple[int, int, int, int]]:
+        min_x = width
+        min_y = height
+        max_x = -1
+        max_y = -1
+
+        for index, value in enumerate(data):
+            if value < 0:
+                continue
+            x = index % width
+            y = index // width
+            if x < min_x:
+                min_x = x
+            if y < min_y:
+                min_y = y
+            if x > max_x:
+                max_x = x
+            if y > max_y:
+                max_y = y
+
+        if max_x < 0 or max_y < 0:
+            return None
+        return (min_x, min_y, max_x, max_y)
 
     def _write_placeholder_preview_locked(self):
         pixels = self._placeholder_pixels(160, 160)
@@ -453,6 +516,19 @@ class MapRegistry(object):
             yaml_file.write("free_thresh: %.3f\n" % self._config.free_thresh)
 
         self._write_grayscale_png(preview_path, width, height, pixels)
+
+    def _restore_selected_map_locked(self):
+        if not self._selected_map_id:
+            self._state_manager.set_selected_map("", "")
+            return
+
+        record = self._maps.get(self._selected_map_id)
+        if record is None or not record.is_available():
+            self._selected_map_id = ""
+            self._state_manager.set_selected_map("", "")
+            return
+
+        self._state_manager.set_selected_map(record.map_id, record.display_name)
 
     @staticmethod
     def _write_grayscale_png(path: str, width: int, height: int, pixels: bytes):
@@ -513,4 +589,3 @@ class MapRegistry(object):
         siny_cosp = 2.0 * (quat.w * quat.z + quat.x * quat.y)
         cosy_cosp = 1.0 - 2.0 * (quat.y * quat.y + quat.z * quat.z)
         return math.atan2(siny_cosp, cosy_cosp)
-

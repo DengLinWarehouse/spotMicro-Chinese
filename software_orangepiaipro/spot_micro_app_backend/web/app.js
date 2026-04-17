@@ -19,6 +19,10 @@
     mapsList: document.getElementById("maps-list"),
     forwardAxisLabel: document.getElementById("forward-axis-label"),
     turnAxisLabel: document.getElementById("turn-axis-label"),
+    currentMapCard: document.getElementById("current-map-card"),
+    currentMapTitle: document.getElementById("current-map-title"),
+    currentMapDetail: document.getElementById("current-map-detail"),
+    currentMapBadge: document.getElementById("current-map-badge"),
     mapPreviewImage: document.getElementById("map-preview-image"),
     saveMapButton: document.getElementById("save-map-button"),
     renameMapButton: document.getElementById("rename-map-button"),
@@ -41,6 +45,8 @@
   let pendingMapId = "";
   let pendingMapName = "";
   let lastPreviewStamp = 0;
+  let initialMapStateKnown = false;
+  let startupRestoreHint = false;
 
   function setFeedback(message) {
     stateEls.requestFeedback.textContent = message;
@@ -63,6 +69,36 @@
 
   function supportsMapPreview(mode) {
     return mode === "MANUAL_MAPPING" || mode === "AUTO_EXPLORE_MAPPING" || mode === "AUTO_PATROL";
+  }
+
+  function getSelectedMap(status) {
+    return status && status.selected_map ? status.selected_map : null;
+  }
+
+  function renderCurrentMapCard(status) {
+    const selected = getSelectedMap(status);
+    if (!selected || !selected.map_id) {
+      stateEls.currentMapCard.className = "current-map-card current-map-card-empty";
+      stateEls.currentMapTitle.textContent = "未选择地图";
+      stateEls.currentMapDetail.textContent = "确认选图后，页面会把它视为当前默认地图。";
+      stateEls.currentMapBadge.className = "map-badge";
+      stateEls.currentMapBadge.textContent = "未选择";
+      return;
+    }
+
+    stateEls.currentMapTitle.textContent = selected.display_name || selected.map_id;
+    if (startupRestoreHint) {
+      stateEls.currentMapCard.className = "current-map-card current-map-card-restored";
+      stateEls.currentMapDetail.textContent = "页面启动时已从后端恢复这张选中地图。";
+      stateEls.currentMapBadge.className = "map-badge map-badge-selected";
+      stateEls.currentMapBadge.textContent = "已恢复";
+      return;
+    }
+
+    stateEls.currentMapCard.className = "current-map-card";
+    stateEls.currentMapDetail.textContent = "当前后端会把这张地图作为默认选中地图。";
+    stateEls.currentMapBadge.className = "map-badge map-badge-selected";
+    stateEls.currentMapBadge.textContent = "当前使用";
   }
 
   function syncPendingSelection() {
@@ -140,14 +176,18 @@
 
   function renderStatus(status) {
     currentStatus = status;
+    const selectedMap = getSelectedMap(status);
+    if (!initialMapStateKnown) {
+      startupRestoreHint = !!(selectedMap && selectedMap.map_id);
+      initialMapStateKnown = true;
+    }
     stateEls.runtimeState.textContent = status.runtime_state;
     stateEls.selectedMode.textContent = status.selected_mode;
     stateEls.armedState.textContent = status.armed ? "是" : "否";
     stateEls.estopState.textContent = status.estop_latched ? "已锁定" : "未锁定";
     stateEls.faultState.textContent = status.fault_active ? status.fault_reason || "故障激活" : "无";
     stateEls.controlSource.textContent = status.current_control_source;
-    stateEls.selectedMapName.textContent =
-      (status.selected_map && status.selected_map.display_name) || "未选择地图";
+    stateEls.selectedMapName.textContent = (selectedMap && selectedMap.display_name) || "未选择地图";
     stateEls.speedLevelLabel.textContent = String(status.speed_level);
     stateEls.speedLevelDisplay.textContent = String(status.speed_level);
     stateEls.lastUpdateLabel.textContent = humanNow();
@@ -166,7 +206,8 @@
     });
 
     stateEls.saveMapButton.hidden = !isMappingMode(status.selected_mode);
-    stateEls.renameMapButton.disabled = !(status.selected_map && status.selected_map.map_id);
+    stateEls.renameMapButton.disabled = !(selectedMap && selectedMap.map_id);
+    renderCurrentMapCard(status);
     syncPendingSelection();
 
     if (status.last_action) {
@@ -261,13 +302,20 @@
       actions.className = "map-item-actions";
 
       const pickButton = document.createElement("button");
+      const isCurrentMap = map.map_id === selectedMapId;
       pickButton.type = "button";
       pickButton.className = "mini-button";
-      pickButton.textContent = map.map_id === pendingMapId ? "已暂选" : "暂选";
-      pickButton.disabled = !map.available;
-      pickButton.addEventListener("click", () => {
-        setPendingMap(map.map_id, map.display_name || map.map_id);
-      });
+      if (isCurrentMap) {
+        pickButton.textContent = "当前使用";
+        pickButton.disabled = true;
+        pickButton.title = "这张地图已经是当前使用地图，无需暂选";
+      } else {
+        pickButton.textContent = map.map_id === pendingMapId ? "已暂选" : "暂选";
+        pickButton.disabled = !map.available;
+        pickButton.addEventListener("click", () => {
+          setPendingMap(map.map_id, map.display_name || map.map_id);
+        });
+      }
 
       const renameButton = document.createElement("button");
       renameButton.type = "button";
@@ -345,6 +393,7 @@
         method: "POST",
         body: JSON.stringify({ display_name: displayName }),
       });
+      startupRestoreHint = false;
       if (payload.status) renderStatus(payload.status);
       pendingMapId = "";
       pendingMapName = "";
@@ -364,6 +413,7 @@
         method: "POST",
         body: JSON.stringify({ map_id: pendingMapId }),
       });
+      startupRestoreHint = false;
       if (payload.status) renderStatus(payload.status);
       pendingMapId = "";
       pendingMapName = "";

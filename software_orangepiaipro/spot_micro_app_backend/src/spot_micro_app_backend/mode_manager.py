@@ -22,6 +22,10 @@ class ModeManager(object):
             return ActionResult(
                 ActionType.SELECT_MODE, False, "busy", "cannot change mode during active transition"
             )
+        if state.armed:
+            return ActionResult(
+                ActionType.SELECT_MODE, False, "robot_armed", "cannot change mode while robot is armed"
+            )
 
         self._state_manager.set_armed(False)
         self._state_manager.set_control_source(ControlSource.NONE)

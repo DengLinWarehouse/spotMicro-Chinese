@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 
 from .action_manager import ActionManager
+from .autonomy_manager import AutonomyManager
 from .health_monitor import HealthMonitor
 from .manual_control_manager import ManualControlManager
 from .map_registry import MapRegistry, MapStorageConfig
@@ -28,17 +29,17 @@ class SpotMicroAppBackend(object):
             session_timeout_sec=config.session_timeout_sec,
         )
         self.mode_manager = ModeManager(self.state_manager)
-        self.action_manager = ActionManager(self.state_manager, self.ros_runtime)
-        self.manual_control_manager = ManualControlManager(self.state_manager, self.ros_runtime, self.watchdog)
-        self.health_monitor = HealthMonitor(self.state_manager, self.ros_runtime)
         self.map_registry = MapRegistry(
             self.state_manager,
             storage_config=map_storage_config,
             map_topic=config.topics.map_topic,
             dry_run=config.dry_run,
         )
+        self.autonomy_manager = AutonomyManager(self.state_manager, self.map_registry)
+        self.action_manager = ActionManager(self.state_manager, self.ros_runtime, self.autonomy_manager)
+        self.manual_control_manager = ManualControlManager(self.state_manager, self.ros_runtime, self.watchdog)
+        self.health_monitor = HealthMonitor(self.state_manager, self.ros_runtime)
         self.status_gateway = StatusGateway(self.state_manager)
-        self.state_manager.set_selected_map("", "")
 
     def refresh_health(self):
         self.health_monitor.refresh()

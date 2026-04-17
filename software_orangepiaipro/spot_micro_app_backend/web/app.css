@@ -415,6 +415,51 @@ button {
   min-height: 360px;
 }
 
+.current-map-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(47, 110, 71, 0.18);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(242, 248, 244, 0.95), rgba(255, 250, 243, 0.92));
+}
+
+.current-map-card-empty {
+  border-color: rgba(63, 46, 34, 0.12);
+  background: rgba(255, 250, 243, 0.72);
+}
+
+.current-map-card-restored {
+  border-color: rgba(47, 110, 71, 0.26);
+  box-shadow: inset 0 0 0 1px rgba(47, 110, 71, 0.08);
+}
+
+.current-map-copy {
+  min-width: 0;
+}
+
+.current-map-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.current-map-copy strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+}
+
+.current-map-copy p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
 .preview-frame img {
   display: block;
   width: 100%;

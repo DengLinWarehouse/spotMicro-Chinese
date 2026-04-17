@@ -16,6 +16,10 @@ class ManualControlManager(object):
         state = self._state_manager.snapshot()
         if state.estop_latched or state.fault_active or not state.armed:
             return False
+        if state.current_control_source == ControlSource.AUTO:
+            return False
+        if state.runtime_state in (RuntimeState.RUNNING_AUTO_EXPLORE, RuntimeState.RUNNING_AUTO_PATROL):
+            return False
         if state.selected_mode not in (ControlMode.MANUAL, ControlMode.MANUAL_MAPPING, ControlMode.AUTO_EXPLORE_MAPPING):
             return False
 

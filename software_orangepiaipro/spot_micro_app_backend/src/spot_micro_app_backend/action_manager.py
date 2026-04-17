@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from .autonomy_manager import AutonomyManager
 from .models import ActionResult, ActionType, ControlMode, ControlSource, RuntimeState
 from .ros_runtime_adapter import RosRuntimeAdapter
 from .state_manager import StateManager
 
 
 class ActionManager(object):
-    def __init__(self, state_manager: StateManager, ros_runtime: RosRuntimeAdapter):
+    def __init__(self, state_manager: StateManager, ros_runtime: RosRuntimeAdapter, autonomy_manager: AutonomyManager):
         self._state_manager = state_manager
         self._ros_runtime = ros_runtime
+        self._autonomy_manager = autonomy_manager
 
     def start(self) -> ActionResult:
         state = self._state_manager.snapshot()
@@ -24,12 +26,16 @@ class ActionManager(object):
             result = ActionResult(ActionType.START, False, "busy", "cannot start during active transition")
             self._state_manager.set_last_action(result)
             return result
+        preflight = self._autonomy_manager.preflight_start(state.selected_mode)
+        if preflight is not None:
+            self._state_manager.set_last_action(preflight)
+            return preflight
 
         self._state_manager.set_runtime_state(RuntimeState.STARTING)
         result = self._ros_runtime.request_start(state.selected_mode)
         if result.accepted:
             self._state_manager.set_armed(True)
-            self._state_manager.set_control_source(ControlSource.NONE)
+            self._state_manager.set_control_source(self._control_source_after_start(state.selected_mode))
             self._state_manager.set_runtime_state(self._runtime_state_after_start(state.selected_mode))
         else:
             self._state_manager.set_runtime_state(RuntimeState.READY_DISARMED)
@@ -73,3 +79,9 @@ class ActionManager(object):
         if mode == ControlMode.AUTO_EXPLORE_MAPPING:
             return RuntimeState.RUNNING_AUTO_EXPLORE
         return RuntimeState.RUNNING_AUTO_PATROL
+
+    @staticmethod
+    def _control_source_after_start(mode: ControlMode) -> ControlSource:
+        if mode in (ControlMode.AUTO_EXPLORE_MAPPING, ControlMode.AUTO_PATROL):
+            return ControlSource.AUTO
+        return ControlSource.NONE
