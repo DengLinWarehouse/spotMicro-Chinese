@@ -62,6 +62,7 @@ class PatrolConfig:
     forward_probability: float = 0.58
     pause_probability: float = 0.12
     zero_transition_sec: float = 0.12
+    live_execution_enabled: bool = False
 
 
 @dataclass(frozen=True)
@@ -150,6 +151,7 @@ class DryRunRosRuntimeAdapter(RosRuntimeAdapter):
                     "linear_x": "%.3f" % float(linear_x),
                     "angular_z": "%.3f" % float(angular_z),
                     "mode": mode.value,
+                    "bridged_to_cmd_vel": "false",
                 },
             )
         return ActionResult(
@@ -292,6 +294,7 @@ class TopicRosRuntimeAdapter(RosRuntimeAdapter):
             "linear_x": "%.3f" % twist.linear.x,
             "angular_z": "%.3f" % twist.angular.z,
             "mode": mode.value,
+            "bridged_to_cmd_vel": "false",
         }
         return ActionResult(ActionType.MANUAL_INTENT, True, "ros_ok", "auto command published", details)
 

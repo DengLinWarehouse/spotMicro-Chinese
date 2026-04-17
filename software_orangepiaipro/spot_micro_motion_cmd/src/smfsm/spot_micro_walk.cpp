@@ -12,12 +12,9 @@
 namespace {
 
 float computeStridePlanningTicks(const SpotMicroNodeConfig& smnc) {
-  float active_ticks = std::max(1, smnc.stance_ticks);
-  float reference_ticks = std::max(1, smnc.stride_reference_stance_ticks);
-
-  // Blend the active gait timing with a fixed reference gait so switching
-  // between 8-phase and 4-phase does not collapse the fore-aft touchdown plan.
-  return std::sqrt(active_ticks * reference_ticks);
+  // Use the currently active stance duration so faster cadence directly shortens
+  // the planned touchdown stride instead of letting fore-aft swing grow large.
+  return static_cast<float>(std::max(1, smnc.stance_ticks));
 }
 
 }  // namespace
@@ -28,9 +25,9 @@ SpotMicroWalkState::SpotMicroWalkState() {
   contact_feet_states_.left_front_in_swing = false;
   contact_feet_states_.left_back_in_swing = false;
 
-  ticks_ = 0;
+  gait_cycle_phase_ = 0.0f;
   phase_index_ = 0;
-  subphase_ticks_ = 0;
+  subphase_ticks_ = 0.0f;
 }
 
 SpotMicroWalkState::~SpotMicroWalkState() {
@@ -54,12 +51,10 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     changeState(smmc, std::make_unique<SpotMicroTransitionStandState>());
 
   } else {
-    // NOTE(2026-04-15): Real robot tests show that changing cadence while
-    // ticks_ keeps accumulating can break gait phase continuity during
-    // obstacle turns. Keep the original adaptive path commented here for
-    // easy rollback after the issue is fully verified on hardware.
-    // SpotMicroNodeConfig gait_smnc = buildAdaptiveGaitConfig(smnc_, cmd);
-    SpotMicroNodeConfig gait_smnc = smnc_;
+    // Keep gait phase continuity by tracking a normalized cycle phase instead
+    // of a raw tick counter. This lets cadence change with speed without
+    // resetting leg phasing mid-walk.
+    SpotMicroNodeConfig gait_smnc = buildAdaptiveGaitConfig(smnc_, cmd);
 
     // Update gate phasing data
     updatePhaseData(gait_smnc);
@@ -76,8 +71,12 @@ void SpotMicroWalkState::handleInputCommands(const smk::BodyState& body_state,
     smmc->setServoCommandMessageData();
     smmc->publishServoProportionalCommand();
 
-    // Increment ticks
-    ticks_ += 1;
+    // Advance the normalized gait cycle using the active phase length so
+    // higher commanded speed mostly shows up as higher step frequency.
+    float phase_increment =
+        1.0f / static_cast<float>(std::max(1, gait_smnc.phase_length));
+    gait_cycle_phase_ += phase_increment;
+    gait_cycle_phase_ -= std::floor(gait_cycle_phase_);
   }
 }
 
@@ -102,22 +101,36 @@ void SpotMicroWalkState::init(const smk::BodyState& body_state,
   cmd_state_.xyz_pos.x = 0.0f;
   cmd_state_.xyz_pos.y = smnc.default_stand_height;
   cmd_state_.xyz_pos.z = 0.0f;
+  gait_cycle_phase_ = 0.0f;
+  phase_index_ = 0;
+  subphase_ticks_ = 0.0f;
 
 }
 
 
 void SpotMicroWalkState::updatePhaseData(const SpotMicroNodeConfig& smnc) {
-  int phase_time = ticks_ % smnc.phase_length;
-  int phase_sum = 0;
+  if (smnc.phase_length <= 0 || smnc.phase_ticks.empty()) {
+    phase_index_ = 0;
+    subphase_ticks_ = 0.0f;
+    return;
+  }
+
+  float phase_time =
+      gait_cycle_phase_ * static_cast<float>(std::max(1, smnc.phase_length));
+  float phase_sum = 0.0f;
+  phase_index_ = static_cast<int>(smnc.phase_ticks.size()) - 1;
+  subphase_ticks_ = 0.0f;
 
   // Update phase index and subphase ticks
   for (int i = 0; i < smnc.num_phases; i++) {
-    phase_sum += smnc.phase_ticks[i];
-    if (phase_time < phase_sum) {
+    float phase_duration = static_cast<float>(smnc.phase_ticks[i]);
+    float phase_end = phase_sum + phase_duration;
+    if (phase_time < phase_end) {
       phase_index_ = i;
-      subphase_ticks_ = phase_time - phase_sum + smnc.phase_ticks[i];
+      subphase_ticks_ = phase_time - phase_sum;
       break;
     }
+    phase_sum = phase_end;
   }
 
   // Update contact feet states
@@ -341,9 +354,15 @@ smk::Point SpotMicroWalkState::swingLegController(
   Vector3f delta_pos(stride_gain * alpha * stride_ticks * dt * cmd.getXSpeedCmd(),
                      0.0f, 
                      stride_gain * alpha * stride_ticks * dt * cmd.getYSpeedCmd());
+  float max_stride_x = std::max(0.0f, smnc.max_stride_x);
+  float max_stride_y = std::max(0.0f, smnc.max_stride_y);
+  delta_pos[0] = std::clamp(delta_pos[0], -max_stride_x, max_stride_x);
+  delta_pos[2] = std::clamp(delta_pos[2], -max_stride_y, max_stride_y);
 
   // Create rotation matrix for yaw rate
   float theta = beta * stride_ticks * dt * -cmd.getYawRateCmd();
+  float max_stride_yaw = std::max(0.0f, smnc.max_stride_yaw);
+  theta = std::clamp(theta, -max_stride_yaw, max_stride_yaw);
   Matrix3f rot_delta;
   rot_delta = AngleAxisf(theta, Vector3f::UnitY());
 

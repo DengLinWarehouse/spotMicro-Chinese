@@ -65,6 +65,7 @@ class SpotMicroAppBackendNode(object):
             forward_probability=rospy.get_param("~patrol/forward_probability", 0.58),
             pause_probability=rospy.get_param("~patrol/pause_probability", 0.12),
             zero_transition_sec=rospy.get_param("~patrol/zero_transition_sec", 0.12),
+            live_execution_enabled=rospy.get_param("~patrol/live_execution_enabled", False),
         )
         map_storage = MapStorageConfig(
             root_dir=rospy.get_param("~map_storage/root_dir", "~/Desktop/SpotMicro/app_backend"),

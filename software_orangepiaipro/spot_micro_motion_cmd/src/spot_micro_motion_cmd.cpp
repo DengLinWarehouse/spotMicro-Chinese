@@ -1,5 +1,6 @@
 #include "spot_micro_motion_cmd.h"
 
+#include <algorithm>
 #include <eigen3/Eigen/Geometry>
 #include "std_msgs/Float32.h"
 #include "std_msgs/Bool.h"
@@ -370,7 +371,10 @@ void SpotMicroMotionCmd::readInConfigParameters() {
   pnh_.getParam("max_side_velocity", smnc_.max_side_velocity);
   pnh_.getParam("max_yaw_rate", smnc_.max_yaw_rate);
   pnh_.param("max_cadence_factor", smnc_.max_cadence_factor, 2.5f);
-  pnh_.param("stride_gain", smnc_.stride_gain, 1.8f);
+  pnh_.param("stride_gain", smnc_.stride_gain, 1.0f);
+  pnh_.param("max_stride_x", smnc_.max_stride_x, 0.05f);
+  pnh_.param("max_stride_y", smnc_.max_stride_y, 0.03f);
+  pnh_.param("max_stride_yaw", smnc_.max_stride_yaw, 0.12f);
   pnh_.param("stride_reference_num_phases", smnc_.stride_reference_num_phases, 8);
   pnh_.param("stride_reference_overlap_time", smnc_.stride_reference_overlap_time, 0.0f);
   pnh_.param("stride_reference_swing_time", smnc_.stride_reference_swing_time, 0.36f);
@@ -474,9 +478,15 @@ void SpotMicroMotionCmd::angleCommandCallback(
 
 void SpotMicroMotionCmd::velCommandCallback(
     const geometry_msgs::TwistConstPtr& msg) {
-  cmd_.x_vel_cmd_mps_ = msg->linear.x;
-  cmd_.y_vel_cmd_mps_ = msg->linear.y;
-  cmd_.yaw_rate_cmd_rps_ = msg->angular.z;
+  cmd_.x_vel_cmd_mps_ = std::clamp(msg->linear.x,
+                                   -smnc_.max_fwd_velocity,
+                                   smnc_.max_fwd_velocity);
+  cmd_.y_vel_cmd_mps_ = std::clamp(msg->linear.y,
+                                   -smnc_.max_side_velocity,
+                                   smnc_.max_side_velocity);
+  cmd_.yaw_rate_cmd_rps_ = std::clamp(msg->angular.z,
+                                      -smnc_.max_yaw_rate,
+                                      smnc_.max_yaw_rate);
 }
 
 

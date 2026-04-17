@@ -56,11 +56,14 @@ RB_3: {num: 12, center: 306, range: 227, direction:  1, center_angle_deg:  -0.5}
 transit_tau: 0.3 # Time constant in seconds for first order filters during transition state
 transit_rl: 0.06 # Body motion rate limit in m/s for transition state
 transit_angle_rl: 0.35 # Body motion angular rate limit in rad/s for transition state 
-max_fwd_velocity: 0.4
-max_side_velocity: 0.4
-max_yaw_rate: 0.35
-max_cadence_factor: 2.5 # Increase cadence with speed command so stride does not grow unchecked.
-stride_gain: 1.8 # Separate fore-aft stride scaling from cadence scaling.
+max_fwd_velocity: 0.12
+max_side_velocity: 0.08
+max_yaw_rate: 0.25
+max_cadence_factor: 3.0 # Prefer higher step frequency instead of large stride growth at higher speed.
+stride_gain: 1.0 # Keep touchdown stride close to neutral stance and let cadence provide most speed increase.
+max_stride_x: 0.05 # Hard cap on forward/back touchdown offset from speed planning.
+max_stride_y: 0.03 # Hard cap on lateral touchdown offset from speed planning.
+max_stride_yaw: 0.12 # Hard cap on touchdown yaw rotation in radians.
 stride_reference_num_phases: 8 # Fixed reference gait used to normalize theoretical stride across gait changes.
 stride_reference_overlap_time: 0.0
 stride_reference_swing_time: 0.36

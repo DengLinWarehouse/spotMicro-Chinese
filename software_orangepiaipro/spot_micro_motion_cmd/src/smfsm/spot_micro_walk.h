@@ -37,9 +37,9 @@ class SpotMicroWalkState : public SpotMicroState {
   SpotMicroNodeConfig smnc_;
   smk::BodyState cmd_state_;
 
-  int ticks_;
+  float gait_cycle_phase_;
   int phase_index_;
-  int subphase_ticks_;
+  float subphase_ticks_;
   ContactFeet contact_feet_states_;
 
   // Updates the integer phase index cooresponding to the current phase the

@@ -53,6 +53,7 @@ patrol:
   forward_probability: 0.58
   pause_probability: 0.12
   zero_transition_sec: 0.12
+  live_execution_enabled: false
 
 map_storage:
   root_dir: ~/Desktop/SpotMicro/app_backend

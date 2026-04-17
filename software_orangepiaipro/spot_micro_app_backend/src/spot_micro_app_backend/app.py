@@ -36,7 +36,12 @@ class SpotMicroAppBackend(object):
             map_topic=config.topics.map_topic,
             dry_run=config.dry_run,
         )
-        self.autonomy_manager = AutonomyManager(self.state_manager, self.map_registry)
+        self.autonomy_manager = AutonomyManager(
+            self.state_manager,
+            self.map_registry,
+            dry_run=config.dry_run,
+            patrol_config=config.patrol,
+        )
         self.action_manager = ActionManager(self.state_manager, self.ros_runtime, self.autonomy_manager)
         self.manual_control_manager = ManualControlManager(self.state_manager, self.ros_runtime, self.watchdog)
         self.random_patrol_manager = RandomPatrolManager(self.state_manager, self.ros_runtime, config.patrol)
